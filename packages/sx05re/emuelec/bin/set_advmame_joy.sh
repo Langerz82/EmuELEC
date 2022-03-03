@@ -11,7 +11,7 @@ CONFIG_DIR="/storage/.advance"
 CONFIG="${CONFIG_DIR}/advmame.rc"
 ES_FEATURES="/storage/.config/emulationstation/es_features.cfg"
 
-#source /storage/joy_common.sh "advmame"
+#source /storage/test.sh "advmame"
 source /usr/bin/joy_common.sh "advmame"
 
 ROMNAME=$1
@@ -153,10 +153,10 @@ set_pad(){
       # Create Axis Maps
       case $GC_INDEX in
         dpup|dpdown|dpleft|dpright)
-          [[ ! -z "$DIR" ]] && DIR+= " or " 
+          [[ ! -z "$DIR" ]] && DIR+=" or " 
           [[ "$BTN_TYPE" == "b" ]] && DIR+="joystick_button[${GAMEPAD},${VAL}]"
           [[ "$BTN_TYPE" == "h" ]] && DIR+="joystick_digital[${GAMEPAD},${VAL}]"
-          DIRS["$I"]=$DIR
+          DIRS["$I"]="$DIR"
           ;;
         leftx|lefty)
           for i in {1..2}; do

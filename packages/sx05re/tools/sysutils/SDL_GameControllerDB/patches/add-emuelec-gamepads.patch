@@ -1,10 +1,13 @@
 --- a/gamecontrollerdb.txt
 +++ b/gamecontrollerdb.txt
-@@ -1,5 +1,14 @@
+@@ -1,5 +1,17 @@
  # Game Controller DB for SDL in 2.0.9 format
  # Source: https://github.com/gabomdq/SDL_GameControllerDB
 +
 +# EmuELEC extra gamepads
++030000004c0500006802000010010000,PLAYSTATION(R)3Conteroller-PANHAI,platform:Linux,leftstick:b1,rightx:a2,leftshoulder:b10,start:b3,lefty:a1,dpup:b4,righty:a3,a:b13,b:b14,guide:b16,dpdown:b6,rightshoulder:b11,righttrigger:b9,rightstick:b2,dpright:b5,x:b12,back:b0,leftx:a0,y:b15,dpleft:b7,lefttrigger:b8,
++03000000bc2000000055000011010000,ShanWan Twin USB Joystick,platform:Linux,leftstick:b13,rightx:a2,leftshoulder:b6,start:b11,lefty:a1,dpup:h0.1,righty:a3,a:b1,b:b0,guide:b12,dpdown:h0.4,rightshoulder:b7,righttrigger:b9,rightstick:b14,dpright:h0.2,x:b4,back:b10,leftx:a0,y:b3,dpleft:h0.8,lefttrigger:b8,
++050000004c0500006802000000000000,Sony PLAYSTATION(R)3 Controller,platform:Linux,leftstick:b1,rightx:a2,leftshoulder:b10,start:b3,lefty:a1,dpup:b4,righty:a3,a:b13,b:b14,guide:b16,dpdown:b6,rightshoulder:b11,righttrigger:b9,rightstick:b2,dpright:b5,x:b12,back:b0,leftx:a0,y:b15,dpleft:b7,lefttrigger:b8,
 +190000004b4800000010000000010000,GO-Advance Gamepad,platform:Linux,a:b0,b:b1,x:b3,y:b2,back:b10,start:b15,leftstick:b12,rightstick:b13,leftshoulder:b4,rightshoulder:b5,dpup:b6,dpdown:b7,dpleft:b8,dpright:b9,leftx:a0,lefty:a1,lefttrigger:b11,righttrigger:b14,
 +190000004b4800000010000001010000,GO-Advance Gamepad (rev 1.1),platform:Linux,x:b2,a:b1,b:b0,y:b3,back:b12,guide:b13,start:b17,dpleft:b10,dpdown:b9,dpright:b11,dpup:b8,leftshoulder:b4,lefttrigger:b6,rightshoulder:b5,righttrigger:b7,rightstick:b16,leftx:a0,lefty:a1,
 +190000004b4800000011000000010000,GO-Super Gamepad,platform:Linux,x:b2,a:b1,b:b0,y:b3,back:b12,guide:b16,start:b13,dpleft:b10,dpdown:b9,dpright:b11,dpup:b8,leftshoulder:b4,lefttrigger:b6,rightshoulder:b5,righttrigger:b7,leftstick:b14,rightstick:b17,leftx:a0,lefty:a1,rightx:a2,righty:a3,
