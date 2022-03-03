@@ -6,7 +6,10 @@
 # Source predefined functions and variables
 . /etc/profile
 
-DATA="https://github.com/EmuELEC/supertux/archive/data_only.zip"
+# This variable has to match the version on package.mk
+VERSION="0.6.3"
+
+DATA="https://github.com/SuperTux/supertux/archive/refs/tags/v${VERSION}.zip"
 DATAFOLDER="/storage/roms/ports/supertux"
 CONFIGFOLDER="/emuelec/configs/supertux2"
 
@@ -48,12 +51,15 @@ if [ ! -e "${DATAFOLDER}/credits.stxt" ]; then
     text_viewer -y -w -f 24 -t "Data does not exists!" -m "It seems this is the first time you are launching Super Tux or the data folder does not exists\n\nData is about 200 MB total, and you need to be connected to the internet\n\nDownload and continue?"
         if [[ $? == 21 ]]; then
             ee_console enable
-            wget "${DATA}" -q --show-progress > /dev/tty0 2>&1
-            unzip "data_only.zip" > /dev/tty0
-            mv supertux-data_only/data/* "${DATAFOLDER}" > /dev/tty0
-            rm -rf "supertux-data_only"
-            rm "data_only.zip"
+            rm -rf ${DATAFOLDER}/*
+            wget "${DATA}" -o "${VERSION}.zip" -q --show-progress > /dev/tty0 2>&1
+            unzip "${VERSION}.zip" > /dev/tty0
+            mv supertux-${VERSION}/data/* "${DATAFOLDER}" > /dev/tty0
+            rm -rf "supertux-${VERSION}"
+            rm "${VERSION}.zip"
             rm "imgui.ini"
+            mv ${DATAFOLDER}/levels/misc/menu.stl.in ${DATAFOLDER}/levels/misc/menu.stl
+            sed -i "s|@LOGO_FILE@|logo_final.sprite|g" ${DATAFOLDER}/levels/misc/menu.stl
             ee_console disable
            SUPERTUX2_DATA_DIR="${DATAFOLDER}" supertux2
         else

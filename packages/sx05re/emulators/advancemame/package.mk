@@ -15,8 +15,9 @@ PKG_SECTION="emuelec/mod"
 PKG_SHORTDESC="A MAME and MESS port with an advanced video support for Arcade Monitors, TVs, and PC Monitors "
 PKG_LONGDESC="A MAME and MESS port with an advanced video support for Arcade Monitors, TVs, and PC Monitors "
 PKG_IS_ADDON="no"
-PKG_AUTORECONF="no"
+PKG_AUTORECONF="yes"
 PKG_TOOLCHAIN="make"
+PKG_BUILD_FLAGS="-parallel"
 
 pre_configure_target() {
 export CFLAGS=`echo $CFLAGS | sed -e "s|-O.|-O3|g"`
@@ -44,7 +45,7 @@ elif [ "$DEVICE" == "GameForce" ]; then
 else
    cp -r $PKG_DIR/config/advmame.rc $INSTALL/usr/share/advance/advmame.rc
 fi
-   
+
 mkdir -p $INSTALL/usr/bin
    cp -r $PKG_DIR/bin/* $INSTALL/usr/bin
 chmod +x $INSTALL/usr/bin/advmame.sh

@@ -7,10 +7,12 @@ PKG_ARCH="any"
 PKG_LICENSE="GPL2 + BUILDLIC"
 PKG_SITE="https://eduke32.com"
 PKG_URL="https://voidpoint.io/terminx/eduke32.git"
-PKG_DEPENDS_TARGET="toolchain SDL2-git SDL2_mixer timidity flac"
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_mixer timidity flac"
 PKG_LONGDESC="EDuke32 is an awesome, free homebrew game engine and source port of the classic PC first person shooter Duke Nukem 3D"
 GET_HANDLER_SUPPORT="git"
 PKG_TOOLCHAIN="make"
+
+export GIT_SSL_NO_VERIFY=1
 
 pre_configure_target() {
 export ARCH=${ARCH}

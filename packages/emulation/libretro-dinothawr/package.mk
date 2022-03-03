@@ -2,16 +2,16 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="libretro-dinothawr"
-PKG_VERSION="18118f66f4a04897fd1cbbfa87cd8957f5bd22ad"
-PKG_SHA256="1363f2a6c6cfaaf3bce5933072ebfcd54fc9f3ce4050cf72a88cde607b4846ff"
+PKG_VERSION="2e789028a8738ecfbde4da6dc164c41502a94955"
+PKG_SHA256="29afdd8f0d6f901f3eb55ac9a0172e488fca7179f4490aec2e5a8a31cc57227f"
 PKG_LICENSE="GPLv3"
 PKG_SITE="https://github.com/libretro/Dinothawr"
-PKG_URL="https://github.com/libretro/Dinothawr/archive/$PKG_VERSION.tar.gz"
+PKG_URL="https://github.com/libretro/Dinothawr/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain kodi-platform"
 PKG_LONGDESC="game.libretro.dinothawr: dinothawr for Kodi"
 
 PKG_LIBNAME="dinothawr_libretro.so"
-PKG_LIBPATH="$PKG_LIBNAME"
+PKG_LIBPATH="${PKG_LIBNAME}"
 PKG_LIBVAR="DINOTHAWR_LIB"
 
 pre_make_target() {
@@ -21,7 +21,7 @@ pre_make_target() {
 }
 
 makeinstall_target() {
-  mkdir -p $SYSROOT_PREFIX/usr/lib/cmake/$PKG_NAME
-  cp $PKG_LIBPATH $SYSROOT_PREFIX/usr/lib/$PKG_LIBNAME
-  echo "set($PKG_LIBVAR $SYSROOT_PREFIX/usr/lib/$PKG_LIBNAME)" > $SYSROOT_PREFIX/usr/lib/cmake/$PKG_NAME/$PKG_NAME-config.cmake
+  mkdir -p ${SYSROOT_PREFIX}/usr/lib/cmake/${PKG_NAME}
+  cp ${PKG_LIBPATH} ${SYSROOT_PREFIX}/usr/lib/${PKG_LIBNAME}
+  echo "set(${PKG_LIBVAR} ${SYSROOT_PREFIX}/usr/lib/${PKG_LIBNAME})" > ${SYSROOT_PREFIX}/usr/lib/cmake/${PKG_NAME}/${PKG_NAME}-config.cmake
 }

@@ -6,9 +6,10 @@ PKG_VERSION="bff61dff624ee986ace719583b00baab22a40d52"
 PKG_ARCH="any"
 PKG_SITE="https://github.com/Rubberduckycooly/Sonic-1-2-2013-Decompilation"
 PKG_URL="$PKG_SITE.git"
-PKG_DEPENDS_TARGET="toolchain SDL2-git"
+PKG_DEPENDS_TARGET="toolchain SDL2"
 PKG_SHORTDESC="Sonic 1/2 (2013) Decompilation"
 PKG_TOOLCHAIN="make"
+PKG_EE_UPDATE="no"
 
 pre_configure_target() {
 # Add missing -lstdc++fs

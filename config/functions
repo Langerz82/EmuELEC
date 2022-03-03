@@ -700,7 +700,6 @@ do_autoreconf() {
   fi
 }
 
-
 ### PACKAGE HELPERS ###
 # get variable ($2) for package ($1).
 # avoid infinite recursion if required package is already loaded.
@@ -721,8 +720,26 @@ get_build_dir() {
   fi
 }
 
+get_install_dir() {
+  get_pkg_variable "$1" PKG_INSTALL
+}
+
 get_pkg_version() {
   get_pkg_variable "$1" PKG_VERSION
+}
+
+get_pkg_version_maj_min() {
+  local pkg_version
+
+  [ -n "${1}" ] && pkg_version="$(get_pkg_version "${1}")" || pkg_version="${PKG_VERSION}"
+
+  if [[ ${pkg_version} =~ ^[0-9A-Za-z]*\.[0-9A-Za-z]*\.[0-9A-za-z]*$ ]]; then
+    echo "${pkg_version%.*}"
+  elif [[ ${pkg_version} =~ ^[0-9A-Za-z]*\.[0-9A-Za-z]*$ ]]; then
+    echo "${pkg_version}"
+  else
+    echo "${pkg_version}"
+  fi
 }
 
 get_pkg_directory() {

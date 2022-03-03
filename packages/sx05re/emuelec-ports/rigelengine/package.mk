@@ -2,13 +2,13 @@
 # Copyright (C) 2020-present Nikolai Wuttke (https://github.com/lethal-guitar)
 
 PKG_NAME="rigelengine"
-PKG_VERSION="04418348b41978eeffdab4327a107b1459bafae9"
+PKG_VERSION="26c67e7e329c81467df3523d8c05805075f8c809"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPLv2"
 PKG_SITE="https://github.com/lethal-guitar/RigelEngine"
 PKG_URL="$PKG_SITE.git"
-PKG_DEPENDS_TARGET="toolchain SDL2-git SDL2_mixer boost"
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_mixer boost"
 PKG_LONGDESC="A modern re-implementation of the classic DOS game Duke Nukem II"
 PKG_CMAKE_OPTS_TARGET="-DCMAKE_BUILD_TYPE=Release -DUSE_GL_ES=ON -DWARNINGS_AS_ERRORS=OFF"
 GET_HANDLER_SUPPORT="git"

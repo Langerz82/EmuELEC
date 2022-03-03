@@ -8,7 +8,7 @@ PKG_ARCH="any"
 PKG_LICENSE="GPLv3"
 PKG_SITE=""
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain jinja2:host pyyaml:host"
+PKG_DEPENDS_TARGET="toolchain Jinja2:host pyyaml pyyaml:host"
 PKG_SECTION="emuelec"
 PKG_SHORTDESC="EmuELEC Ports Meta Package"
 PKG_TOOLCHAIN="manual"
@@ -40,7 +40,7 @@ PKG_DEPENDS_TARGET+=" commander-genius \
 amlogicports=""
 hhports=" openjazz"
 
-if [ "$PROJECT" == "Amlogic"* ]; then
+if [ "${DEVICE}" == "Amlogic"* ]; then
 	PKG_DEPENDS_TARGET+="${amlogicports}"
 fi
 

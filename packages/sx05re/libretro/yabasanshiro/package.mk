@@ -33,7 +33,6 @@ PKG_SHORTDESC="Port of YabaSanshiro to libretro."
 PKG_LONGDESC="Port of YabaSanshiro to libretro."
 PKG_TOOLCHAIN="make"
 GET_HANDLER_SUPPORT="git"
-PKG_EE_UPDATE="no"
 
 pre_configure_target() { 
 if [[ "$ARCH" == "arm" ]]; then
@@ -44,15 +43,14 @@ if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ]; then
 		PKG_MAKE_OPTS_TARGET+=" -C yabause/src/libretro platform=AMLG12B"
 	fi
 else
-if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ]; then
+	if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ]; then
 		sed -i "s|-mtune=cortex-a73.cortex-a53|-mtune=cortex-a35|g" $PKG_BUILD/yabause/src/libretro/Makefile
 	fi
 	
-	if [[ "$PROJECT" == "Amlogic" ]]; then
+	if [[ "${DEVICE}" == "Amlogic" ]]; then
 		sed -i "s|-mtune=cortex-a73.cortex-a53|-mtune=cortex-a53|g" $PKG_BUILD/yabause/src/libretro/Makefile
 	fi
-	
-	PKG_MAKE_OPTS_TARGET+=" -C yabause/src/libretro platform=odroid-n2"
+		PKG_MAKE_OPTS_TARGET+=" -C yabause/src/libretro platform=odroid-n2"
 fi
 }
 

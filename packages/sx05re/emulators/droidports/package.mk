@@ -2,11 +2,11 @@
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="droidports"
-PKG_VERSION="cb860d6d38e9251cc38837a538a4d77f894a31c1"
+PKG_VERSION="faf39702a6148f689c3f36964c8eabad81dc996b"
 PKG_ARCH="arm"
 PKG_SITE="https://github.com/JohnnyonFlame/droidports"
 PKG_URL="$PKG_SITE.git"
-PKG_DEPENDS_TARGET="toolchain SDL2-git SDL2_image openal-soft bzip2 libzip libpng"
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_image openal-soft bzip2 libzip libpng"
 PKG_LONGDESC="A repository for experimenting with elf loading and in-place patching of android native libraries on non-android operating systems."
 PKG_TOOLCHAIN="cmake"
 

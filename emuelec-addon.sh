@@ -71,7 +71,7 @@ PACKAGES_Sx05RE="$PKG_EMUS \
 				empty \
 				sixpair \
 				joyutils \
-				SDL2-git \
+				SDL2 \
 				freeimage \
 				vlc \
 				freetype \

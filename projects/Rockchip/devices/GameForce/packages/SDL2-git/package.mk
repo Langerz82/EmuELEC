@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2018-present 5schatten (https://github.com/5schatten)
 
-PKG_NAME="SDL2-git"
+PKG_NAME="SDL2"
 PKG_VERSION="2.0.10" # 2.0.9 Do not update!
 #PKG_SHA256="255186dc676ecd0c1dbf10ec8a2cc5d6869b5079d8a38194c2aecdff54b324b1"
 PKG_LICENSE="GPL"

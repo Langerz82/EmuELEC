@@ -2,13 +2,13 @@
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="hurrican"
-PKG_VERSION="f2cce99acebd1b155cbb445c26e77785a14287d6"
+PKG_VERSION="446b7a1a53a364e046b1b4e1570c522588aa5542"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="MIT"
 PKG_SITE="https://github.com/drfiemost/Hurrican"
 PKG_URL="$PKG_SITE.git"
-PKG_DEPENDS_TARGET="toolchain SDL2-git SDL2_mixer libepoxy"
+PKG_DEPENDS_TARGET="toolchain SDL2 SDL2_mixer libepoxy"
 PKG_LONGDESC="A fork of Hurrican, freeware jump and shoot game created by Poke53280, with SDL2 enabled by default, support for libopenmpt and CRT simulation "
 GET_HANDLER_SUPPORT="git"
 PKG_TOOLCHAIN="cmake"
