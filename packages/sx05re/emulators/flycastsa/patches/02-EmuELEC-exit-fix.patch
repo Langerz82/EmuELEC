@@ -10,7 +10,7 @@ index 5927b471980..d3fde398a3d 100644
 +	long int i1 = (long int)((void *)ctx.pc);
 +	long int i2 = (long int) si->si_addr;
 +	if (i1 == i2 && i1 == 0)
-+		return;
++		exit(0);
 +
  	ERROR_LOG(COMMON, "SIGSEGV @ %p -> %p was not in vram, dynacode:%d", (void *)ctx.pc, si->si_addr, dyna_cde);
  #ifdef __SWITCH__

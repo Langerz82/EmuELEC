@@ -17,7 +17,7 @@ PKG_MAKE_OPTS_TARGET+="USE_GLES=1"
 
 make_target() {
   export HOST_CPU=aarch64
-  export APIDIR=$(get_install_dir mupen64plussa-core)/usr/local/include/mupen64plus
+  export APIDIR=$(get_build_dir mupen64plussa-core)/.install_pkg/usr/local/include/mupen64plus
   export USE_GLES=1
   export SDL_CFLAGS="-I$SYSROOT_PREFIX/usr/include/SDL2 -D_REENTRANT"
   export SDL_LDLIBS="-lSDL2_net -lSDL2"

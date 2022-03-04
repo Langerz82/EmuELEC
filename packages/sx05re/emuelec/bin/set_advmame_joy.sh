@@ -11,7 +11,7 @@ CONFIG_DIR="/storage/.advance"
 CONFIG="${CONFIG_DIR}/advmame.rc"
 ES_FEATURES="/storage/.config/emulationstation/es_features.cfg"
 
-#source /storage/test.sh "advmame"
+#source /storage/common.sh "advmame"
 source /usr/bin/joy_common.sh "advmame"
 
 ROMNAME=$1
@@ -19,8 +19,8 @@ ROMNAME=$1
 
 BTN_CFG="0 1 2 3 4 5 6 7"
 
-BTN_H0=$(get_ee_setting advmame_btn_h0)
-[[ -z "$BTN_H0" ]] && BTN_H0=4
+BTN_H0=$(get_ee_setting advmame_btn_hat)
+[[ -z "$BTN_H0" ]] && BTN_H0=3
 
 
 declare -A ADVMAME_VALUES=(
@@ -41,10 +41,10 @@ declare -A ADVMAME_VALUES=(
   ["b14"]="button15"
   ["b15"]="button16"
   ["b16"]="button17"
-  ["h0.1"]="stick${BTN_H0},y,up"
-  ["h0.4"]="stick${BTN_H0},y,down"
-  ["h0.8"]="stick${BTN_H0},x,left"
-  ["h0.2"]="stick${BTN_H0},x,right"
+  ["h0.1"]="$BTN_H0,1,1"
+  ["h0.4"]="$BTN_H0,1,0"
+  ["h0.8"]="$BTN_H0,0,1"
+  ["h0.2"]="$BTN_H0,0,0"
   ["a0,1"]="stick,y,up"
   ["a0,2"]="stick,y,down"
   ["a1,1"]="stick,x,left"
@@ -106,9 +106,9 @@ set_pad(){
   [[ -z "$JOY_NAME" ]] && JOY_NAME=$(echo $GC_CONFIG | cut -d',' -f2)
   [[ -z "$JOY_NAME" ]] && return
 
-  local GAMEPAD=$(echo "$JOY_NAME" | sed "s|(||" | sed "s|)||" \
-    | sed -e 's/[^A-Za-z0-9._-]/ /g' | sed 's/[[:blank:]]*$//' | sed 's/-//' \
-    | sed -e 's/[^A-Za-z0-9._-]/_/g' | tr '[:upper:]' '[:lower:]' | tr -d '.')
+  local GAMEPAD=$(echo "$JOY_NAME" | sed "s|,||g" | sed "s|_||g" | cut -d'"' -f 2 \
+    | sed "s|(||" | sed "s|)||" | sed -e 's/[^A-Za-z0-9._-]/ /g' | sed 's/[[:blank:]]*$//' \
+    | sed 's/-//' | sed -e 's/[^A-Za-z0-9._-]/_/g' |tr '[:upper:]' '[:lower:]' | tr -d '.')
 
   local NAME_NUM="${GC_NAMES[$JOY_NAME]}"
   if [[ -z "NAME_NUM" ]]; then
@@ -129,7 +129,7 @@ set_pad(){
     [leftx]="0,1"
     [lefty]="2,3"
   )
-
+  local ADD_HAT=$(get_ee_setting advmame_add_hat)
   local i=1
   set -f
   local GC_ARRAY=(${GC_MAP//,/ })
@@ -155,7 +155,7 @@ set_pad(){
         dpup|dpdown|dpleft|dpright)
           [[ ! -z "$DIR" ]] && DIR+=" or " 
           [[ "$BTN_TYPE" == "b" ]] && DIR+="joystick_button[${GAMEPAD},${VAL}]"
-          [[ "$BTN_TYPE" == "h" ]] && DIR+="joystick_digital[${GAMEPAD},${VAL}]"
+          [[ "$ADD_HAT" == "1" && "$BTN_TYPE" == "h" ]] && DIR+="joystick_digital[${GAMEPAD},${VAL}]"
           DIRS["$I"]="$DIR"
           ;;
         leftx|lefty)
@@ -229,7 +229,7 @@ set_pad(){
   fi
 }
 
-ADVMAME_REGEX="<emulator.*name\=\"AdvanceMame\".*features\=\".*[ ,]{1}joybtnremap[, \"]{1}.*\".*/>$"
+ADVMAME_REGEX="<emulator.*name\=\"AdvanceMame\" +features\=.*[ ,\"]joybtnremap[ ,\"].*/>"
 ADVMAME_REMAP=$(cat "${ES_FEATURES}" | grep -E "$ADVMAME_REGEX")
 [[ ! -z "$ADVMAME_REMAP" ]] && BTN_CFG=$(get_button_cfg)
 echo "BTN_CFG=$BTN_CFG"
