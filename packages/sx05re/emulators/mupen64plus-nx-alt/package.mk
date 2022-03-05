@@ -2,7 +2,7 @@
 # Copyright (C) 2021-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="mupen64plus-nx-alt"
-PKG_VERSION="018ee72b4fe247b38ed161033ad12a19bb936f00"
+PKG_VERSION="7280cc27a55cc20ac16d4b6b403ca6fb22ee44c3"
 PKG_SHA256="eab353fe5834d256af96f1fdac328b0656bdeeebde111860067a88bf5442bfe2"
 PKG_REV="1"
 PKG_ARCH="any"
@@ -20,7 +20,7 @@ pre_configure_target() {
   sed -e "s|^GIT_VERSION ?.*$|GIT_VERSION := \" ${PKG_VERSION:0:7}\"|" -i Makefile
 
 if [ $ARCH == "arm" ]; then
-	if [ "${PROJECT}" = "Amlogic-ng" ]; then
+	if [ ${PROJECT} = "Amlogic-ng" ]; then
 		PKG_MAKE_OPTS_TARGET+=" platform=AMLG12B"
 	elif [ "${PROJECT}" = "Amlogic" ]; then
 		PKG_MAKE_OPTS_TARGET+=" platform=amlogic"
@@ -29,7 +29,7 @@ if [ $ARCH == "arm" ]; then
 		PKG_MAKE_OPTS_TARGET+=" platform=odroidgoa"
 	fi
 else
-	if [ "${PROJECT}" = "Amlogic-ng" ]; then
+	if [ ${PROJECT} = "Amlogic-ng" ]; then
 		PKG_MAKE_OPTS_TARGET+=" platform=odroid64 BOARD=N2"
 	elif [ "${PROJECT}" = "Amlogic" ]; then 
 		PKG_MAKE_OPTS_TARGET+=" platform=amlogic64"
