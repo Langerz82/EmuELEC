@@ -157,7 +157,7 @@ set_pad(){
             [[ ! -z "$DIR" ]] && DIR+=" or "
             DIR+="joystick_button[${GAMEPAD},${VAL}]"
           fi
-          if [[ "$ADD_HAT" == "1" && "$BTN_TYPE" == "h" ]]; then  
+          if [[ "$BTN_TYPE" == "h" ]]; then  
             [[ ! -z "$DIR" ]] && DIR+=" or "
             DIR+="joystick_digital[${GAMEPAD},${VAL}]"
           fi
