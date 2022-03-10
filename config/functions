@@ -721,7 +721,8 @@ get_build_dir() {
 }
 
 get_install_dir() {
-  get_pkg_variable "$1" PKG_INSTALL
+  local _PKG_NAME="${1%:*}" _PKG_VERSION="$(get_pkg_version "$1")"
+  echo $BUILD/${_PKG_NAME}-${_PKG_VERSION}/.install_pkg
 }
 
 get_pkg_version() {
