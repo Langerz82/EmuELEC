@@ -322,6 +322,13 @@ else
     ROMNAME_SHADER=${ROMNAME}
 fi
 
+sed -i "/core_options_path.*/d" "${RACONF}"
+if [[ "${CORE}" == "mupen64plus_next_alt" ]]; then
+  echo "core_options_path = /storage/.config/retroarch/config/${CORE}" >> "${RACONF}"
+else
+  echo "core_options_path = \"\"" >> "${RACONF}"
+fi
+
 RUNTHIS='${RABIN} $VERBOSE -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 
