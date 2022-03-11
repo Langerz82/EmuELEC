@@ -87,7 +87,7 @@ clean_all_pad() {
 }
 
 clean_pad() {
-	
+	return
 }
 
 # Sets pad depending on parameters $GAMEPAD = name $1 = player

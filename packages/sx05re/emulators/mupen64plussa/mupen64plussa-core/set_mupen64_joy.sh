@@ -49,7 +49,7 @@ declare -A GC_MUPEN64_BUTTONS=(
   [b]="A Button"
 #  [x]="None"
 #  [y]="None"
-  [lefttrigger]="Z Trig"
+#  [lefttrigger]="Z Trig"
   [righttrigger]="Z Trig"
   [start]="Start"
   [leftshoulder]="L Trig"
@@ -85,9 +85,6 @@ declare -A GC_MUPEN64_STICKS=(
 
 # Cleans all the inputs for the gamepad with name $GAMEPAD and player $1
 clean_pad_all() {
-  #echo "Cleaning pad $1 $2" #debug
-  local JOY_NAME="$4"
-  
   [[ -f "${CONFIG_TMP}" ]] && rm "${CONFIG_TMP}"
   local START_DELETING=0
   local GC_REGEX="\[Input-SDL-Control[1-9]\]"
@@ -145,18 +142,12 @@ set_pad() {
       local BTN_TYPE=${TVAL:0:1}
       local VAL="${GC_MUPEN64_VALUES[$TVAL]}"
 
-      # CREATE BUTTON MAPS (inlcuding hats).
-      if [[ ! -z "$GC_INDEX" ]]; then
-        if [[ "$BTN_TYPE" == "b"  || "$BTN_TYPE" == "h" ]]; then
-          [[ ! -z "$VAL" ]] && echo "${GC_INDEX} = ${VAL}" >> ${CONFIG_TMP}
-        fi
-      fi
-
       # Create Axis Maps
       case $BUTTON_INDEX in
         leftx|lefty)
           local AXIS_VAL=$( printf "${GC_MUPEN64_STICKS[${BUTTON_INDEX}]}" $BUTTON_VAL $BUTTON_VAL )
           echo "$GC_INDEX = $AXIS_VAL" >> ${CONFIG_TMP}
+          continue
           ;;
         rightx|righty)
           GC_INDEX="${GC_MUPEN64_BUTTONS[${BUTTON_INDEX},0]}"
@@ -166,8 +157,21 @@ set_pad() {
           GC_INDEX="${GC_MUPEN64_BUTTONS[${BUTTON_INDEX},1]}"
           VAL=$( printf "${GC_MUPEN64_STICKS[${BUTTON_INDEX},1]}" $BUTTON_VAL )
           echo "${GC_INDEX} = ${VAL}" >> ${CONFIG_TMP}
+          continue
           ;;
       esac
+
+      # CREATE BUTTON MAPS (inlcuding hats).
+      if [[ ! -z "$GC_INDEX" ]]; then
+        if [[ "$BTN_TYPE" == "b"  || "$BTN_TYPE" == "h" ]]; then
+          [[ ! -z "$VAL" ]] && echo "${GC_INDEX} = ${VAL}" >> ${CONFIG_TMP}
+        fi
+        if [[ "$BTN_TYPE" == "a" ]]; then
+          VAL=$( printf "axis(%d+)" $BUTTON_VAL )
+          echo "${GC_INDEX} = ${VAL}" >> ${CONFIG_TMP}
+        fi
+      fi
+
   done
 
   printf "\n\n[Input-SDL-Control${1}]\n" >> ${CONFIG}
