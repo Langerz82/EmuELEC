@@ -323,10 +323,13 @@ else
 fi
 
 sed -i "/core_options_path.*/d" "${RACONF}"
-if [[ "${CORE}" == "mupen64plus_next_alt" ]]; then
-  echo "core_options_path = /storage/.config/retroarch/config/${CORE}" >> "${RACONF}"
+sed -i "/global_core_options.*/d" "${RACONF}"
+if [[ -f "/storage/.config/retroarch/config/${CORE}/${CORE}.opt" ]]; then
+  echo "core_options_path = /storage/.config/retroarch/config/${CORE}/${CORE}.opt" >> "${RACONF}"
+  echo "global_core_options = \"true\"" >> "${RACONF}"
 else
   echo "core_options_path = \"\"" >> "${RACONF}"
+  echo "global_core_options = \"false\"" >> "${RACONF}"
 fi
 
 RUNTHIS='${RABIN} $VERBOSE -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
