@@ -122,11 +122,11 @@ post_makeinstall_target() {
   rm -rf $INSTALL/usr/share/i18n/charmaps
 
 # add UTF-8 charmap for Generic (charmap is needed for installer)
-  if [ "$PROJECT" = "Generic" ]; then
+  #if [ "$PROJECT" = "Generic" ]; then
     mkdir -p $INSTALL/usr/share/i18n/charmaps
     cp -PR $PKG_BUILD/localedata/charmaps/UTF-8 $INSTALL/usr/share/i18n/charmaps
     pigz --best --force $INSTALL/usr/share/i18n/charmaps/UTF-8
-  fi
+  #fi
 
   if [ ! "$GLIBC_LOCALES" = yes ]; then
     rm -rf $INSTALL/usr/share/i18n/locales

@@ -108,12 +108,12 @@ locpath="/emuelec/configs/locale"
 i18npath="$locpath/i18n"
 localepath="$locpath/$lang"
 
-if [ $locale != "en_US" ]; then
+#if [ $locale != "en_US" ]; then
 	if [ ! -d $localepath ]; then
 		export I18NPATH=$i18npath
 		/usr/bin/localedef -f $charmap -i $locale $localepath
 	fi
-fi
+#fi
 
 export LOCPATH=$locpat
 export LANG=$lang
