@@ -81,9 +81,16 @@ jc_get_players() {
       (( PLAYER++ ))
     done
   else
+    declare -i PLAYER=0
     for PLAYER_CFG in "${PLAYER_CFGS[@]}"; do
       jc_setup_gamecontroller "${PLAYER_CFG}"
+      (( PLAYER++ ))
     done
+    if [[ "$PLAYER" -lt "5" ]]; then
+      for i in $(seq $PLAYER 5); do
+        clean_pad "$i"
+      done
+    fi
   fi
 }
 
