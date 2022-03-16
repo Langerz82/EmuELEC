@@ -68,13 +68,13 @@ echo "RESOLUTION=${RES_W} ${RES_H}"
 sed -i "s/ScreenWidth.*/ScreenWidth = ${RES_W}/g" "${CONFIGDIR}/mupen64plus.cfg"
 sed -i "s/ScreenHeight.*/ScreenHeight = ${RES_H}/g" "${CONFIGDIR}/mupen64plus.cfg"
 
-#case ${2} in
-#	"m64p_gl64mk2")
-#		mupen64plus --configdir ${CONFIGDIR} --gfx mupen64plus-video-glide64mk2 "${FILE}"
-#	;;
-#	*)
-#		mupen64plus --configdir ${CONFIGDIR} --gfx mupen64plus-video-rice "${FILE}"
-#	;;
-#esac
+case ${2} in
+	"m64p_gl64mk2")
+		mupen64plus --configdir ${CONFIGDIR} --gfx mupen64plus-video-glide64mk2 "${FILE}"
+	;;
+	*)
+		mupen64plus --configdir ${CONFIGDIR} --gfx mupen64plus-video-rice "${FILE}"
+	;;
+esac
 
 rm -fr /tmp/mupen64plus/*.*
