@@ -20,8 +20,7 @@ ROMNAME=$1
 BTN_CFG="0 1 2 3 4 5 6 7"
 
 BTN_H0=$(get_ee_setting advmame_btn_hat)
-[[ -z "$BTN_H0" ]] && BTN_H0=3
-
+[[ -z "$BTN_H0" ]] && BTN_H0=4
 
 declare -A ADVMAME_VALUES=(
   ["b0"]="button1"
@@ -41,10 +40,11 @@ declare -A ADVMAME_VALUES=(
   ["b14"]="button15"
   ["b15"]="button16"
   ["b16"]="button17"
-  ["h0.1"]="$BTN_H0,1,1"
-  ["h0.4"]="$BTN_H0,1,0"
-  ["h0.8"]="$BTN_H0,0,1"
-  ["h0.2"]="$BTN_H0,0,0"
+  ["b17"]="button18"
+  ["h0.1"]="stick$BTN_H0,y,up"
+  ["h0.4"]="stick$BTN_H0,y,down"
+  ["h0.8"]="stick$BTN_H0,x,left"
+  ["h0.2"]="stick$BTN_H0,x,right"  
   ["a0,1"]="stick,y,up"
   ["a0,2"]="stick,y,down"
   ["a1,1"]="stick,x,left"
@@ -80,9 +80,8 @@ get_button_cfg() {
 	echo "$BTN_CFG"
 }
 
-# Cleans all the inputs for the gamepad with name $GAMEPAD and player $1 
+
 clean_pad() {
-#echo "Cleaning pad $1 $2" #debug
 	sed -i "/device_joystick.*/d" ${CONFIG}
 	sed -i "/input_map\[p${1}_.*/d" ${CONFIG}
 	sed -i "/input_map\[coin${1}.*/d" ${CONFIG}
@@ -94,8 +93,10 @@ clean_pad() {
 	echo "device_joystick raw" >> ${CONFIG}
 }
 
+
 # Sets pad depending on parameters $GAMEPAD = name $1 = player
 set_pad(){
+  local P_INDEX=$(( $1 - 1 ))
   local DEVICE_GUID=$3
   local JOY_NAME="$4"
 
@@ -109,6 +110,16 @@ set_pad(){
   local GAMEPAD=$(echo "$JOY_NAME" | sed "s|,||g" | sed "s|_||g" | cut -d'"' -f 2 \
     | sed "s|(||" | sed "s|)||" | sed -e 's/[^A-Za-z0-9._-]/ /g' | sed 's/[[:blank:]]*$//' \
     | sed 's/-//' | sed -e 's/[^A-Za-z0-9._-]/_/g' |tr '[:upper:]' '[:lower:]' | tr -d '.')
+
+  if [[ "${P_INDEX}" -gt "0" ]]; then
+    BTN_H0=$(advj | grep -B 1 -E "^joy ${P_INDEX} .*" | grep sticks: | sed "s|sticks:\ ||")
+    if [[ ! -z "$BTN_H0" ]]; then
+      ADVMAME_VALUES["h0.1"]="stick$BTN_H0,y,up"
+      ADVMAME_VALUES["h0.4"]="stick$BTN_H0,y,down"
+      ADVMAME_VALUES["h0.8"]="stick$BTN_H0,x,left"
+      ADVMAME_VALUES["h0.2"]="stick$BTN_H0,x,right"
+    fi
+  fi
 
   local NAME_NUM="${GC_NAMES[$JOY_NAME]}"
   if [[ -z "NAME_NUM" ]]; then
@@ -153,14 +164,9 @@ set_pad(){
       # Create Axis Maps
       case $GC_INDEX in
         dpup|dpdown|dpleft|dpright)
-          if [[ "$BTN_TYPE" == "b" ]]; then
-            [[ ! -z "$DIR" ]] && DIR+=" or "
-            DIR+="joystick_button[${GAMEPAD},${VAL}]"
-          fi
-          if [[ "$BTN_TYPE" == "h" ]]; then  
-            [[ ! -z "$DIR" ]] && DIR+=" or "
-            DIR+="joystick_digital[${GAMEPAD},${VAL}]"
-          fi
+          [[ ! -z "$DIR" ]] && DIR+=" or "
+          [[ "$BTN_TYPE" == "b" ]] && DIR+="joystick_button[${GAMEPAD},${VAL}]"
+          [[ "$BTN_TYPE" == "h" ]] && DIR+="joystick_digital[${GAMEPAD},${VAL}]"
           DIRS["$I"]="$DIR"
           ;;
         leftx|lefty)
