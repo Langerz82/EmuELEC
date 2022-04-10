@@ -2,6 +2,7 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2020-present Shanti Gilbert (https://github.com/shantigilbert)
+# Copyright (C) 2022-present Joshua L (https://github.com/Langerz82)
 
 # Source predefined functions and variables
 . /etc/profile
@@ -19,8 +20,7 @@ ROMNAME=$1
 
 BTN_CFG="0 1 2 3 4 5 6 7"
 
-BTN_H0=$(get_ee_setting advmame_btn_hat)
-[[ -z "$BTN_H0" ]] && BTN_H0=4
+BTN_H0=$(advj | grep -B 1 -E "^joy 0 .*" | grep sticks: | sed "s|sticks:\ ||")
 
 declare -A ADVMAME_VALUES=(
   ["b0"]="button1"
@@ -121,13 +121,13 @@ set_pad(){
     fi
   fi
 
-  local NAME_NUM="${GC_NAMES[$JOY_NAME]}"
+  local NAME_NUM="${GC_NAMES[$GAMEPAD]}"
   if [[ -z "NAME_NUM" ]]; then
-    GC_NAMES[$JOY_NAME]=1
+    GC_NAMES[$GAMEPAD]=1
   else
-    GC_NAMES[$JOY_NAME]=$(( NAME_NUM+1 ))
+    GC_NAMES[$GAMEPAD]=$(( NAME_NUM+1 ))
   fi
-	[[ "$1" != "1" && "$NAME_NUM" -gt "1" ]] && GAMEPAD="${GAMEPAD}_${NAME_NUM}"
+	[[ "${GC_NAMES[$GAMEPAD]}" -gt "1" ]] && GAMEPAD="${GAMEPAD}_${GC_NAMES[$GAMEPAD]}"
 
   local GC_MAP=$(echo $GC_CONFIG | cut -d',' -f3-)
 
