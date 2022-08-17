@@ -45,6 +45,7 @@ else
 fi
 
 if [ "${LLVM_SUPPORT}" = "yes" ]; then
+  echo LLVM SUPPORT
   PKG_DEPENDS_TARGET+=" elfutils llvm"
   PKG_MESON_OPTS_TARGET+=" -Dllvm=enabled"
 else

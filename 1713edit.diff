@@ -1,0 +1,862 @@
+diff --git a/build_all.sh b/build_all.sh
+index a2fd7180bf..b50e119a1b 100755
+--- a/build_all.sh
++++ b/build_all.sh
+@@ -83,6 +83,7 @@ targets="\
+ 	Allwinner|H6|aarch64|image \
+ 	Allwinner|R40|arm|image \
+ 	Amlogic|AMLGX|aarch64|image \
++        Ayn|Odin|aarch64|image \
+ 	Generic||i386|image \
+ 	Generic||x86_64|image \
+ 	L4T|Switch|aarch64|image \
+diff --git a/config/arch.aarch64 b/config/arch.aarch64
+index a78b378823..806457a4a9 100644
+--- a/config/arch.aarch64
++++ b/config/arch.aarch64
+@@ -10,7 +10,7 @@
+ 
+ # determine architecture's family
+   case $TARGET_CPU in
+-    generic|cortex-a35|cortex-a53|cortex-a57|cortex-a72|exynos-m1|qdf24xx|thunderx|xgene1|cortex-a57.cortex-a53|cortex-a72.cortex-a53|cortex-a73.cortex-a53)
++    generic|cortex-a35|cortex-a53|cortex-a57|cortex-a72|exynos-m1|qdf24xx|thunderx|xgene1|cortex-a57.cortex-a53|cortex-a72.cortex-a53|cortex-a73.cortex-a53|cortex-a75.cortex-a55)
+       TARGET_SUBARCH=aarch64
+       TARGET_VARIANT=armv8-a
+       TARGET_ABI=eabi
+diff --git a/config/graphic b/config/graphic
+index ee77d53004..2b6cd7efff 100644
+--- a/config/graphic
++++ b/config/graphic
+@@ -33,7 +33,7 @@ get_graphicdrivers() {
+   V4L2_SUPPORT="no"
+ 
+   if [ "${GRAPHIC_DRIVERS}" = "all" ]; then
+-    GRAPHIC_DRIVERS="crocus iris i915 i965 r200 r300 r600 radeonsi nvidia nvidia-legacy vmware virtio vc4"
++    GRAPHIC_DRIVERS="crocus iris i915 i965 r200 r300 r600 radeonsi nvidia nvidia-legacy vmware virtio vc4 freedreno"
+     if [ "${DISTRO}" = "Lakka" ]; then
+       GRAPHIC_DRIVERS+=" crocus"
+     fi
+@@ -54,10 +54,8 @@ get_graphicdrivers() {
+   fi
+ 
+   if listcontains "${GRAPHIC_DRIVERS}" "freedreno"; then
+-    GALLIUM_DRIVERS+=" freedreno"
++    GALLIUM_DRIVERS+=" freedreno kmsro"
+     V4L2_SUPPORT="yes"
+-    VAAPI_SUPPORT="no"
+-    VDPAU_SUPPORT="no"
+   fi
+ 
+   if listcontains "${GRAPHIC_DRIVERS}" "i915"; then
+diff --git a/distributions/Lakka/options b/distributions/Lakka/options
+index 8b78f815d1..ce78814447 100644
+--- a/distributions/Lakka/options
++++ b/distributions/Lakka/options
+@@ -149,7 +149,7 @@
+ # Xorg Graphic drivers to use (all / i915,i965,r200,r300,r600,nvidia)
+ # Space separated list is supported,
+ # e.g. GRAPHIC_DRIVERS="i915 i965 r300 r600 radeonsi nvidia"
+-  GRAPHIC_DRIVERS="crocus r300 r600 radeonsi iris i915 nouveau"
++  GRAPHIC_DRIVERS="crocus r300 r600 radeonsi iris i915 nouveau freedreno"
+ 
+ # build and install Joystick support (yes / no)
+   JOYSTICK_SUPPORT="yes"
+@@ -380,7 +380,11 @@
+     EXCLUDE_LIBRETRO_CORES+=" yabasanshiro"
+   elif [ "${PROJECT}" = "Generic" -a "${ARCH}" = "i386" ]; then
+     EXCLUDE_LIBRETRO_CORES+=" lr_moonlight openlara"
+-  elif [ "${OPENGLES_SUPPORT}" = "yes" ]; then
++  elif [ "${PROJECT}" = "Ayn" -a "${DEVICE}" = "Odin" ]; then
++    EXCLUDE_LIBRETRO_CORES+=" same_cdi lr_moonlight"
++  fi
++
++  if [ "${OPENGLES_SUPPORT}" = "yes" ]; then
+     #Core doesnt work with OPENGLES builds, as nanogui doesnt have support for that
+     #Mental note fix OPENGLES in moonlight core gui/renderer.
+     EXCLUDE_LIBRETRO_CORES+=" lr_moonlight"
+diff --git a/distributions/LibreELEC/options b/distributions/LibreELEC/options
+index 9b704455c4..91dcb3be29 100644
+--- a/distributions/LibreELEC/options
++++ b/distributions/LibreELEC/options
+@@ -220,7 +220,7 @@
+ # Xorg Graphic drivers to use (all / i915,i965,r200,r300,r600,nvidia)
+ # Space separated list is supported,
+ # e.g. GRAPHIC_DRIVERS="i915 i965 r300 r600 radeonsi nvidia"
+-  GRAPHIC_DRIVERS="r300 r600 radeonsi iris i915 i965 nvidia nvidia-legacy vmware virtio"
++  GRAPHIC_DRIVERS="r300 r600 radeonsi iris i915 i965 nvidia nvidia-legacy vmware virtio freedreno"
+ 
+ # build and install remote support (yes / no)
+   REMOTE_SUPPORT="yes"
+diff --git a/packages/audio/pulseaudio-configs/package.mk b/packages/audio/pulseaudio-configs/package.mk
+new file mode 100644
+index 0000000000..3e6811f3b4
+--- /dev/null
++++ b/packages/audio/pulseaudio-configs/package.mk
+@@ -0,0 +1,19 @@
++PKG_NAME="pulseaudio-configs"
++PKG_LICENSE="GPL"
++PKG_DEPENDS_TARGET="alsa-plugins pulseaudio"
++PKG_LONGDESC="Standard configs for pulseaudio"
++PKG_TOOLCHAIN="manual"
++
++make_target() {
++  mkdir -p ${PKG_BUILD}/install_target/etc/pulse
++    cp -r ${PKG_DIR}/pulse/* ${PKG_BUILD}/install_target/etc/pulse/
++    mv ${PKG_BUILD}/install_target/etc/pulse/asound.conf ${PKG_BUILD}/install_target/etc/
++}
++
++makeinstall_target() {
++  if [ ! -d "${INSTALL}" ]; then
++    mkdir -p ${INSTALL}
++  fi
++  echo ${INSTALL}
++  cp -r ${PKG_BUILD}/install_target/* ${INSTALL}/
++}
+diff --git a/packages/audio/pulseaudio-configs/pulse/asound.conf b/packages/audio/pulseaudio-configs/pulse/asound.conf
+new file mode 100644
+index 0000000000..b76c43eb20
+--- /dev/null
++++ b/packages/audio/pulseaudio-configs/pulse/asound.conf
+@@ -0,0 +1,10 @@
++# This file is referred to from files in /usr/share/alsa/alsa.conf.d/ in order
++# to set up the pulse device as the default if required.
++
++pcm.!default {
++        type pulse
++}
++
++ctl.!default {
++        type pulse
++}
+diff --git a/packages/audio/pulseaudio/package.mk b/packages/audio/pulseaudio/package.mk
+index 790cb0797d..e87e702bd3 100644
+--- a/packages/audio/pulseaudio/package.mk
++++ b/packages/audio/pulseaudio/package.mk
+@@ -85,7 +85,7 @@ post_makeinstall_target() {
+ 
+   cp ${PKG_DIR}/config/system.pa ${INSTALL}/etc/pulse/
+ 
+-  if [ "${PROJECT}" = "L4T" ]; then
++  if [ "${PROJECT}" = "L4T" -o "${PROJECT}" = "Ayn" ]; then
+     echo load-module module-switch-on-port-available >> ${INSTALL}/etc/pulse/system.pa
+   fi
+ 
+diff --git a/packages/graphics/libdrm/package.mk b/packages/graphics/libdrm/package.mk
+index d72b1c6ab4..3070742bf6 100644
+--- a/packages/graphics/libdrm/package.mk
++++ b/packages/graphics/libdrm/package.mk
+@@ -49,6 +49,9 @@ listcontains "${GRAPHIC_DRIVERS}" "etnaviv" &&
+ listcontains "${GRAPHIC_DRIVERS}" "nouveau" &&
+   PKG_MESON_OPTS_TARGET+=" -Dnouveau=true" || PKG_MESON_OPTS_TARGET+=" -Dnouveau=false"
+ 
++listcontains "${GRAPHIC_DRIVERS}" "freedreno" &&
++  PKG_MESON_OPTS_TARGET+=" -Dfreedreno=true" || PKG_MESON_OPTS_TARGET+=" -Dfreedreno=false"
++
+ if [ "${DISTRO}" = "Lakka" ]; then
+   PKG_MESON_OPTS_TARGET="${PKG_MESON_OPTS_TARGET//-Dlibkms=false/-Dlibkms=true}"
+ fi
+diff --git a/packages/graphics/libglvnd/package.mk b/packages/graphics/libglvnd/package.mk
+index c367c0f31f..fb196d3af0 100644
+--- a/packages/graphics/libglvnd/package.mk
++++ b/packages/graphics/libglvnd/package.mk
+@@ -10,7 +10,7 @@ PKG_URL="https://github.com/NVIDIA/libglvnd/archive/v${PKG_VERSION}.tar.gz"
+ PKG_DEPENDS_TARGET="toolchain libX11 libXext xorgproto"
+ PKG_LONGDESC="libglvnd is a vendor-neutral dispatch layer for arbitrating OpenGL API calls between multiple vendors."
+ 
+-if [ ! "${PROJECT}" = "L4T" ]; then
++if [ ! "${PROJECT}" = "L4T" -a ! "${PROJECT}" = "Ayn" ]; then
+   if [ "${OPENGLES_SUPPORT}" = "no" ]; then
+     PKG_MESON_OPTS_TARGET="-Dgles1=false \
+                            -Dgles2=false"
+@@ -25,7 +25,7 @@ else
+ fi
+ 
+ post_makeinstall_target() {
+-  if [ ! "${PROJECT}" = "L4T" ]; then
++  if [ ! "${PROJECT}" = "L4T" -a ! "${PROJECT}" = "Ayn" ]; then
+     if [ "${DISPLAYSERVER}" = "x11" ]; then
+       # Remove old symlinks to GLVND libGL.so.1.7.0
+       safe_remove              ${INSTALL}/usr/lib/libGL.so
+diff --git a/packages/graphics/mesa/package.mk b/packages/graphics/mesa/package.mk
+index 165664c042..d637a423b3 100644
+--- a/packages/graphics/mesa/package.mk
++++ b/packages/graphics/mesa/package.mk
+@@ -34,10 +34,10 @@ PKG_MESON_OPTS_TARGET="-Ddri-drivers=${DRI_DRIVERS// /,} \
+                        -Dselinux=false \
+                        -Dosmesa=false"
+ 
+-if [ "${DISPLAYSERVER}" = "x11" ]; then
++if [ "${DISPLAYSERVER}" = "x11" -a ! "${PROJECT}" = "L4T" ]; then
+   PKG_DEPENDS_TARGET+=" xorgproto libXext libXdamage libXfixes libXxf86vm libxcb libX11 libxshmfence libXrandr libglvnd"
+   export X11_INCLUDES=
+-  PKG_MESON_OPTS_TARGET+=" -Dplatforms=x11 -Ddri3=enabled -Dglx=dri -Dglvnd=true"
++  PKG_MESON_OPTS_TARGET+=" -Dplatforms=x11 -Ddri3=enabled -Dglx=dri -Dglx-direct=true -Dglvnd=true"
+ elif [ "${DISPLAYSERVER}" = "weston" ]; then
+   PKG_DEPENDS_TARGET+=" wayland wayland-protocols"
+   PKG_MESON_OPTS_TARGET+=" -Dplatforms=wayland -Ddri3=disabled -Dglx=disabled -Dglvnd=false"
+@@ -49,6 +49,7 @@ else
+ fi
+ 
+ if [ "${LLVM_SUPPORT}" = "yes" ]; then
++  echo LLVM SUPPORT
+   PKG_DEPENDS_TARGET+=" elfutils llvm"
+   PKG_MESON_OPTS_TARGET+=" -Dllvm=enabled"
+ else
+@@ -73,7 +74,7 @@ if listcontains "${GRAPHIC_DRIVERS}" "crocus"; then
+   PKG_MESON_OPTS_TARGET+=" -Dprefer-crocus=true"
+ fi
+ 
+-if listcontains "${GRAPHIC_DRIVERS}" "vmware"; then
++if listcontains "${GRAPHIC_DRIVERS}" "vmware" || listcontains "${GRAPHIC_DRIVERS}" "freedreno"; then
+   PKG_MESON_OPTS_TARGET+=" -Dgallium-xa=enabled"
+ else
+   PKG_MESON_OPTS_TARGET+=" -Dgallium-xa=disabled"
+@@ -91,6 +92,8 @@ if [ "${VULKAN_SUPPORT}" = "yes" ]; then
+     PKG_MESON_OPTS_TARGET="${PKG_MESON_OPTS_TARGET//-Dvulkan-drivers=/-Dvulkan-drivers=amd,intel}"
+   elif [ "${PROJECT}" = "RPi" -a "${DEVICE:0:4}" = "RPi4" ]; then
+     PKG_MESON_OPTS_TARGET="${PKG_MESON_OPTS_TARGET//-Dvulkan-drivers=/-Dvulkan-drivers=broadcom}"
++  elif listcontains "${GRAPHIC_DRIVERS}" "freedreno"; then
++    PKG_MESON_OPTS_TARGET="${PKG_MESON_OPTS_TARGET//-Dvulkan-drivers=/-Dvulkan-drivers=freedreno}"
+   fi
+ fi
+ 
+diff --git a/packages/lakka/retroarch_base/retroarch/package.mk b/packages/lakka/retroarch_base/retroarch/package.mk
+index 198efd384b..bccb5787ba 100644
+--- a/packages/lakka/retroarch_base/retroarch/package.mk
++++ b/packages/lakka/retroarch_base/retroarch/package.mk
+@@ -30,7 +30,7 @@ PKG_MAKE_OPTS_TARGET="V=1 \
+ if [ "${OPENGLES_SUPPORT}" = yes ]; then
+   PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+   PKG_CONFIGURE_OPTS_TARGET+=" --enable-opengles"
+-  if [[ ${DEVICE} =~ ^RPi4.* ]] || [ ${DEVICE} = "RK3288" ] || [ "${DEVICE}" = "RK3399" ]; then
++  if [[ ${DEVICE} =~ ^RPi4.* ]] || [ ${DEVICE} = "RK3288" ] || [ "${DEVICE}" = "RK3399" ] || [ "${DEVICE}" = "Odin" ]; then
+     PKG_CONFIGURE_OPTS_TARGET+=" --enable-opengles3 \
+                                  --enable-opengles3_1"
+   fi
+@@ -38,7 +38,7 @@ else
+   PKG_CONFIGURE_OPTS_TARGET+=" --disable-opengles"
+ fi
+ 
+-if [ "${OPENGL_SUPPORT}" = yes ]; then
++if [ "${OPENGL_SUPPORT}" = yes -a ! "${OPENGLES_SUPPORT}" = "yes" ]; then
+   PKG_DEPENDS_TARGET+=" ${OPENGL}"
+   PKG_CONFIGURE_OPTS_TARGET+=" --enable-opengl"
+   PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL1=1"
+@@ -67,7 +67,7 @@ fi
+ 
+ if [ "${DISPLAYSERVER}" = "x11" ]; then
+   PKG_DEPENDS_TARGET+=" libXxf86vm libXv"
+-  PKG_CONFIGURE_OPTS_TARGET+=" --enable-x11"
++  PKG_CONFIGURE_OPTS_TARGET+=" --enable-x11 --enable-xinerama"
+ else
+   PKG_CONFIGURE_OPTS_TARGET+=" --disable-x11"
+ fi
+@@ -112,7 +112,6 @@ else
+ fi
+ 
+ if [ "${PROJECT}" = "L4T" ]; then
+-  PKG_CONFIGURE_OPTS_TARGET+=" --enable-xinerama"
+   PKG_CONFIGURE_OPTS_TARGET=${PKG_CONFIGURE_OPTS_TARGET//--enable-kms/--disable-kms}
+   #EGL break gl1 support so if opengl enabled, force disable egl/gles
+   if [ "${OPENGL_SUPPORT}" = yes ]; then
+@@ -304,24 +303,33 @@ makeinstall_target() {
+   fi
+ 
+   # Switch
+-  if [ "${PROJECT}" = "L4T" -a "${DEVICE}" = "Switch" ]; then
++  if [ "${PROJECT}" = "L4T" -a "${DEVICE}" = "Switch" ] || [ "${PROJECT}" = "Ayn" -a "${DEVICE}" = "Odin" ]; then
+     echo 'menu_mouse_enable = "false"' >> ${INSTALL}/etc/retroarch.cfg
+     echo 'menu_pointer_enable = "true"'>> ${INSTALL}/etc/retroarch.cfg
+-    echo 'video_hard_sync = "true"' >> ${INSTALL}/etc/retroarch.cfg
+     echo 'video_crop_overscan = "false"' >> ${INSTALL}/etc/retroarch.cfg
+-    echo 'input_joypad_driver = "udev"' >> ${INSTALL}/etc/retroarch.cfg
++
++    if [ ! "${PROJECT}" = "Ayn" -a ! "${DEVICE}" = "Odin" ]; then
++      echo 'input_joypad_driver = "udev"' >> ${INSTALL}/etc/retroarch.cfg
++      echo 'video_hard_sync = "true"' >> ${INSTALL}/etc/retroarch.cfg
++    fi
+ 
+     sed -i -e 's|^input_driver =.*|input_driver= "x"|' ${INSTALL}/etc/retroarch.cfg
+     sed -i -e 's|^video_smooth =.*|video_smooth = "true"|' ${INSTALL}/etc/retroarch.cfg
+     sed -i -e 's|^menu_driver =.*|menu_driver = "ozone"|' ${INSTALL}/etc/retroarch.cfg
+ 
+-    #Set Default Joycon index to Combined Joycons.
+-    echo 'input_player1_joypad_index = "2"' >> ${INSTALL}/etc/retroarch.cfg
++    if [ ! "${PROJECT}" = "Ayn" -a ! "${DEVICE}" = "Odin" ]; then
++      #Set Default Joycon index to Combined Joycons.
++      echo 'input_player1_joypad_index = "2"' >> ${INSTALL}/etc/retroarch.cfg
+ 
+-    #Set Joypad as joypad with analog
+-    echo 'input_libretro_device_p1 = "5"' >> ${INSTALL}/etc/retroarch.cfg
++      #Set Joypad as joypad with analog
++      echo 'input_libretro_device_p1 = "5"' >> ${INSTALL}/etc/retroarch.cfg
++    else
++      echo 'video_driver = "glcore"' >> ${INSTALL}/etc/retroarch.cfg
++      sed -i -e 's|^audio_driver =.*|audio_driver = "pulse"|' ${INSTALL}/etc/retroarch.cfg
++      echo video_vsync = "false" >> ${INSTALL}/etc/retroarch.cfg
++    fi
+ 
+-    #HACK: Temporary hack for touch in Nintendo Switch
++    #HACK: Temporary hack for touchscreen
+     sed -i -e 's|^video_windowed_fullscreen =.*|video_windowed_fullscreen = "true"|' ${INSTALL}/etc/retroarch.cfg
+   fi
+ 
+diff --git a/packages/lakka/retroarch_base/retroarch_joypad_autoconfig/joypad_configs/udev/Odin Gamepad.cfg b/packages/lakka/retroarch_base/retroarch_joypad_autoconfig/joypad_configs/udev/Odin Gamepad.cfg
+new file mode 100644
+index 0000000000..11935c85b0
+--- /dev/null
++++ b/packages/lakka/retroarch_base/retroarch_joypad_autoconfig/joypad_configs/udev/Odin Gamepad.cfg	
+@@ -0,0 +1,34 @@
++input_driver = "udev"
++input_device = "Odin Gamepad"
++input_device_display_name = "Odin Gamepad"
++input_vendor_id = "8224"
++input_product_id = "273"
++
++input_up_btn = "11"
++input_down_btn = "12"
++input_left_btn = "13"
++input_right_btn = "14"
++input_a_btn = "1"
++input_b_btn = "0"
++input_x_btn = "2"
++input_y_btn = "3"
++input_select_btn = "6"
++input_start_btn = "7"
++
++input_l_btn = "4"
++input_l3_btn = "9"
++input_r_btn = "5"
++input_r3_btn = "10"
++
++input_l2_axis = "-2"
++input_r2_axis = "-5"
++
++input_l_x_plus_axis = "+1"
++input_l_x_minus_axis = "-1"
++input_l_y_plus_axis = "-0"
++input_l_y_minus_axis = "+0"
++
++input_r_x_plus_axis = "-3"
++input_r_x_minus_axis = "+3"
++input_r_y_plus_axis = "-4"
++input_r_y_minus_axis = "+4"
+diff --git a/packages/linux/package.mk b/packages/linux/package.mk
+index 3bc45ade02..f5961accae 100644
+--- a/packages/linux/package.mk
++++ b/packages/linux/package.mk
+@@ -28,7 +28,7 @@ case "${LINUX}" in
+     PKG_SOURCE_NAME="linux-${LINUX}-${PKG_VERSION}.tar.gz"
+     ;;
+   L4T)
+-    PKG_VERSION=$DEVICE
++    PKG_VERSION=${DEVICE}
+     PKG_URL="l4t-kernel-sources"
+     GET_HANDLER_SUPPORT="l4t-kernel-sources"
+     PKG_PATCH_DIRS="${PROJECT} ${PROJECT}/${DEVICE}"
+@@ -36,6 +36,12 @@ case "${LINUX}" in
+     #Need to find a better way to do this for l4t platforms!
+     PKG_SHA256=$L4T_COMBINED_KERNEL_SHA256
+     ;;
++  ayn-odin)
++   PKG_SHA256="b425b70a6379f3415ed349f5c5719d4a6f315523"
++   PKG_VERSION="${PKG_SHA256}"
++   PKG_URL="https://gitlab.com/tjstyle/linux.git"
++   PKG_PATCH_DIRS="default ayn-odin"
++   ;;
+   *)
+     PKG_VERSION="5.10.123"
+     PKG_SHA256="654ab0960b70013e7dad6b3782c25d62e13cbb8c053010daef667d5d74061e52"
+@@ -114,8 +120,10 @@ make_host() {
+        headers_check
+ 
+      export PATH=${CURRENT_PATH}
++  elif [ "${LINUX}" = "ayn-odin" ]; then
++    :
+   else
+-    make \
++   make \
+       ARCH=${HEADERS_ARCH:-$TARGET_KERNEL_ARCH} \
+       HOSTCC="${TOOLCHAIN}/bin/host-gcc" \
+       HOSTCXX="${TOOLCHAIN}/bin/host-g++" \
+@@ -161,7 +169,6 @@ pre_make_target() {
+   pkg_lock_status "ACTIVE" "linux:target" "build"
+ 
+   cp ${PKG_KERNEL_CFG_FILE} ${PKG_BUILD}/.config
+-
+   # set initramfs source
+   ${PKG_BUILD}/scripts/config --set-str CONFIG_INITRAMFS_SOURCE "$(kernel_initramfs_confs) ${BUILD}/initramfs"
+ 
+@@ -465,9 +472,13 @@ makeinstall_target() {
+   rm -f ${INSTALL}/$(get_kernel_overlay_dir)/lib/modules/*/build
+   rm -f ${INSTALL}/$(get_kernel_overlay_dir)/lib/modules/*/source
+ 
+-  if [ "$BOOTLOADER" = "switch-bootloader" ]; then
++  if [ "${BOOTLOADER}" = "switch-bootloader" -o "${BOOTLOADER}" = "odin-bootloader" ]; then
+     mkdir -p $INSTALL/usr/share/bootloader/boot/
+-    cp arch/arm64/boot/dts/tegra210-icosa.dtb $INSTALL/usr/share/bootloader/boot/
++    if [ "${BOOTLOADER}" = "switch-bootloader" ]; then
++      cp arch/arm64/boot/dts/tegra210-icosa.dtb ${INSTALL}/usr/share/bootloader/boot/
++    else
++      cp arch/arm64/boot/dts/qcom/sdm845-ayn-odin.dtb ${INSTALL}/usr/share/bootloader/boot/
++    fi
+   elif [ "${BOOTLOADER}" = "u-boot" ]; then
+     mkdir -p ${INSTALL}/usr/share/bootloader
+     for dtb in arch/${TARGET_KERNEL_ARCH}/boot/dts/*.dtb arch/${TARGET_KERNEL_ARCH}/boot/dts/*/*.dtb; do
+diff --git a/packages/sysutils/busybox/scripts/init b/packages/sysutils/busybox/scripts/init
+index b27c12b849..2a5428723f 100755
+--- a/packages/sysutils/busybox/scripts/init
++++ b/packages/sysutils/busybox/scripts/init
+@@ -314,7 +314,7 @@ check_is_compatible() {
+ 
+ update_file() {
+   if [ -f "$UPDATE_DIR/$2" -a -f "$3" ]; then
+-    if [ ! "$NX_BOOT" = "yes" ]; then
++    if [ ! "$FAT32_BOOT" = "yes" ]; then
+       mount -o remount,rw /flash
+     fi
+     rm -f "$3"
+@@ -327,7 +327,7 @@ update_file() {
+       StopProgress
+ 
+     # loopback file needs writable /flash all the time
+-    if [ ! "$NX_BOOT" = "yes" ]; then
++    if [ ! "$FAT32_BOOT" = "yes" ]; then
+       if [ "${disk%%=*}" != "FILE" ]; then
+         mount -o remount,ro /flash
+       fi
+@@ -554,7 +554,7 @@ mount_flash() {
+ 
+   wakeonlan
+ 
+-  if [ ! "$NX_BOOT" = "yes" ]; then
++  if [ ! "$FAT32_BOOT" = "yes" ]; then
+     mount_part "$boot" "/flash" "ro,noatime"
+   else
+     mount_part "$boot" "/flash" "rw,noatime"
+@@ -590,7 +590,7 @@ mount_storage() {
+ 
+   wakeonlan
+ 
+-  if [ "$NX_BOOT" = "yes" ]; then
++  if [ "$FAT32_BOOT" = "yes" ]; then
+     DISTRO=${IMAGE_SYSTEM%'/'*}
+     mkdir -p /flash/$DISTRO/storage
+     mount --bind /flash/$DISTRO/storage /storage
+@@ -747,7 +747,7 @@ check_update() {
+       tar -xf "$UPDATE_TAR" -C $UPDATE_DIR/.tmp 1>/dev/null 2>/tmp/tarresult.txt || TARRESULT="1"
+ 
+     if [ "${TARRESULT}" -eq "0" ]; then
+-      if [ "$NX_BOOT" = "yes" ]; then
++      if [ "$FAT32_BOOT" = "yes" ]; then
+         mv $UPDATE_DIR/.tmp/* $UPDATE_DIR &>/dev/null
+         UPDATE_DIR=${UPDATE_TAR%.*}
+       else
+@@ -834,7 +834,7 @@ check_update() {
+   fi
+ 
+   sync
+-  if [ ! "$NX_BOOT" = "yes" ]; then
++  if [ ! "$FAT32_BOOT" = "yes" ]; then
+     if [ ! -b "/$IMAGE_KERNEL" -a ! -f "/flash/$IMAGE_KERNEL" ] || [ ! -f "/flash/$IMAGE_SYSTEM" ]; then
+       echo "Missing (target) ${IMAGE_KERNEL} or ${IMAGE_SYSTEM}!"
+       do_cleanup
+@@ -850,7 +850,7 @@ check_update() {
+     fi
+   fi
+ 
+-  if [ "$NX_BOOT" = "yes" ]; then
++  if [ "$FAT32_BOOT" = "yes" ]; then
+     UPDATE_KERNEL=$IMAGE_KERNEL
+     UPDATE_SYSTEM=$IMAGE_SYSTEM
+   fi
+@@ -863,7 +863,7 @@ check_update() {
+   fi
+ 
+   # check md5 sums if .nocheck doesn't exist
+-  if [ ! -f "$UPDATE_ROOT/.nocheck" -a ! "$NX_BOOT" = "yes" ]; then
++  if [ ! -f "$UPDATE_ROOT/.nocheck" -a ! "$FAT32_BOOT" = "yes" ]; then
+     if [ -f "$UPDATE_DIR/${UPDATE_KERNEL}.md5" -a -f "$UPDATE_DIR/${UPDATE_SYSTEM}.md5" ]; then
+       # *.md5 size-check
+       if [ ! -s "$UPDATE_DIR/${UPDATE_KERNEL}.md5" -o ! -s "$UPDATE_DIR/${UPDATE_SYSTEM}.md5" ]; then
+@@ -971,7 +971,7 @@ prepare_sysroot() {
+   mount --move /flash /sysroot/flash
+   mount --move /storage /sysroot/storage
+ 
+-  if [ ! "$NX_BOOT" = "yes" ]; then
++  if [ ! "$FAT32_BOOT" = "yes" ]; then
+     if [ ! -d "/sysroot/usr/lib/kernel-overlays/base/lib/modules/$(uname -r)/" -a -f "/sysroot/usr/lib/systemd/systemd" ]; then
+       echo ""
+       echo "NEVER TOUCH boot= in syslinux.conf / cmdline.txt!"
+@@ -1088,8 +1088,8 @@ for arg in $(cat /proc/cmdline); do
+     ip=*)
+       KERNEL_IPCONFIG="yes"
+       ;;
+-    nx-boot)
+-      NX_BOOT="yes"
++    fat32-boot)
++      FAT32_BOOT="yes"
+       ;;
+   esac
+ done
+diff --git a/packages/tools/plymouth-lite/package.mk b/packages/tools/plymouth-lite/package.mk
+index f3cad5bef1..4ab16ae3cf 100644
+--- a/packages/tools/plymouth-lite/package.mk
++++ b/packages/tools/plymouth-lite/package.mk
+@@ -19,8 +19,9 @@ pre_configure_init() {
+ makeinstall_init() {
+   mkdir -p ${INSTALL}/usr/bin
+     cp ply-image ${INSTALL}/usr/bin
+-
+-  mkdir -p ${INSTALL}/splash
+-    find_file_path splash/splash.conf && cp ${FOUND_PATH} ${INSTALL}/splash
+-    find_file_path "splash/splash-*.png" && cp ${FOUND_PATH} ${INSTALL}/splash
++  if [ ! "${BOOTLOADER}" = "switch-bootloader" -a ! "${BOOTLOADER}" = "odin-bootloader" ]; then
++    mkdir -p ${INSTALL}/splash
++      find_file_path splash/splash.conf && cp ${FOUND_PATH} ${INSTALL}/splash
++      find_file_path "splash/splash-*.png" && cp ${FOUND_PATH} ${INSTALL}/splash
++  fi
+ }
+diff --git a/packages/virtual/initramfs/package.mk b/packages/virtual/initramfs/package.mk
+index eb5bb1bc78..26e9ff849b 100644
+--- a/packages/virtual/initramfs/package.mk
++++ b/packages/virtual/initramfs/package.mk
+@@ -24,6 +24,14 @@ if [ "${PROJECT}" = "L4T" ];then
+   PKG_DEPENDS_INIT+=" tegra-bsp:init"
+ fi
+ 
++if [ "${BOOTLOADER}" = "switch-bootloader" ]; then
++  PKG_DEPENDS_INIT+=" switch-bootloader:init"
++fi
++
++if [ "${BOOTLOADER}" = "odin-bootloader" ]; then
++  PKG_DEPENDS_INIT+=" odin-bootloader:init"
++fi
++
+ for i in ${PKG_DEPENDS_INIT}; do
+   PKG_NEED_UNPACK+=" $(get_pkg_directory ${i})"
+ done
+diff --git a/packages/x11/driver/xf86-input-libinput/package.mk b/packages/x11/driver/xf86-input-libinput/package.mk
+index e4184de2e3..e978c492da 100644
+--- a/packages/x11/driver/xf86-input-libinput/package.mk
++++ b/packages/x11/driver/xf86-input-libinput/package.mk
+@@ -8,7 +8,7 @@ PKG_SHA256="f9c7f9fd41ae14061e0e9c3bd45fa170e5e21027a2bc5810034e1e748db996c0"
+ PKG_LICENSE="GPL"
+ PKG_SITE="http://www.freedesktop.org/wiki/Software/libinput/"
+ PKG_URL="http://xorg.freedesktop.org/archive/individual/driver/${PKG_NAME}-${PKG_VERSION}.tar.bz2"
+-PKG_DEPENDS_TARGET="toolchain libinput"
++PKG_DEPENDS_TARGET="toolchain libinput xorg-server"
+ PKG_LONGDESC="This is an X driver based on libinput."
+ PKG_TOOLCHAIN="autotools"
+ 
+diff --git a/packages/x11/lib/libICE/package.mk b/packages/x11/lib/libICE/package.mk
+index b7c84ea722..3335769587 100644
+--- a/packages/x11/lib/libICE/package.mk
++++ b/packages/x11/lib/libICE/package.mk
+@@ -16,6 +16,6 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static \
+                            --disable-ipv6 \
+                            --without-xmlto"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libSM/package.mk b/packages/x11/lib/libSM/package.mk
+index 9c9521edf5..17fb6ff067 100644
+--- a/packages/x11/lib/libSM/package.mk
++++ b/packages/x11/lib/libSM/package.mk
+@@ -17,6 +17,6 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static \
+                            --without-xmlto \
+                            --without-fop"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXau/package.mk b/packages/x11/lib/libXau/package.mk
+index 14f09345e9..9dcc380f71 100644
+--- a/packages/x11/lib/libXau/package.mk
++++ b/packages/x11/lib/libXau/package.mk
+@@ -14,6 +14,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared --enable-xthreads"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXcomposite/package.mk b/packages/x11/lib/libXcomposite/package.mk
+index 08f81ce753..cf21bf3a4d 100644
+--- a/packages/x11/lib/libXcomposite/package.mk
++++ b/packages/x11/lib/libXcomposite/package.mk
+@@ -14,6 +14,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXdamage/package.mk b/packages/x11/lib/libXdamage/package.mk
+index 69b3b0efeb..c7d3084a95 100644
+--- a/packages/x11/lib/libXdamage/package.mk
++++ b/packages/x11/lib/libXdamage/package.mk
+@@ -14,6 +14,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXfixes/package.mk b/packages/x11/lib/libXfixes/package.mk
+index 33b1c5f022..0fa6fe096e 100644
+--- a/packages/x11/lib/libXfixes/package.mk
++++ b/packages/x11/lib/libXfixes/package.mk
+@@ -14,6 +14,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXfont2/package.mk b/packages/x11/lib/libXfont2/package.mk
+index 2cffa90698..ac8949cace 100644
+--- a/packages/x11/lib/libXfont2/package.mk
++++ b/packages/x11/lib/libXfont2/package.mk
+@@ -22,6 +22,6 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared \
+                            --with-gnu-ld \
+                            --without-xmlto"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+-fi                         
++fi
+diff --git a/packages/x11/lib/libXi/package.mk b/packages/x11/lib/libXi/package.mk
+index 32dadbefd8..bcfe4ad060 100644
+--- a/packages/x11/lib/libXi/package.mk
++++ b/packages/x11/lib/libXi/package.mk
+@@ -23,6 +23,6 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared \
+                            --without-asciidoc \
+                            --with-gnu-ld"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXinerama/package.mk b/packages/x11/lib/libXinerama/package.mk
+index 845418e7c3..d9e6eb0cc2 100644
+--- a/packages/x11/lib/libXinerama/package.mk
++++ b/packages/x11/lib/libXinerama/package.mk
+@@ -13,6 +13,6 @@ PKG_LONGDESC="libXinerama is the Xinerama library."
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared --enable-malloc0returnsnull"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXmu/package.mk b/packages/x11/lib/libXmu/package.mk
+index ee5f99b103..514f99d9c5 100644
+--- a/packages/x11/lib/libXmu/package.mk
++++ b/packages/x11/lib/libXmu/package.mk
+@@ -14,6 +14,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared --with-gnu-ld --without-xmlto"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXrender/package.mk b/packages/x11/lib/libXrender/package.mk
+index 0c738ca8a7..da80cd9f2c 100644
+--- a/packages/x11/lib/libXrender/package.mk
++++ b/packages/x11/lib/libXrender/package.mk
+@@ -14,6 +14,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared --enable-malloc0returnsnull"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXt/package.mk b/packages/x11/lib/libXt/package.mk
+index e9500504ed..d6266205f9 100644
+--- a/packages/x11/lib/libXt/package.mk
++++ b/packages/x11/lib/libXt/package.mk
+@@ -16,7 +16,7 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static \
+                            --with-gnu-ld \
+                            --enable-malloc0returnsnull"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+ 
+diff --git a/packages/x11/lib/libXtst/package.mk b/packages/x11/lib/libXtst/package.mk
+index e3c0b4f373..2391525d4a 100644
+--- a/packages/x11/lib/libXtst/package.mk
++++ b/packages/x11/lib/libXtst/package.mk
+@@ -13,6 +13,6 @@ PKG_LONGDESC="The Xtst Library"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared --with-gnu-ld --without-xmlto"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXv/package.mk b/packages/x11/lib/libXv/package.mk
+index 6ee7d9a3be..1a6603550c 100644
+--- a/packages/x11/lib/libXv/package.mk
++++ b/packages/x11/lib/libXv/package.mk
+@@ -25,6 +25,6 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared \
+                            --with-gnu-ld"
+ 
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libXxf86vm/package.mk b/packages/x11/lib/libXxf86vm/package.mk
+index c0e8fabdb8..a1366d5614 100644
+--- a/packages/x11/lib/libXxf86vm/package.mk
++++ b/packages/x11/lib/libXxf86vm/package.mk
+@@ -14,6 +14,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared --enable-malloc0returnsnull"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libfontenc/package.mk b/packages/x11/lib/libfontenc/package.mk
+index e712a6b8a2..0b9908aee5 100644
+--- a/packages/x11/lib/libfontenc/package.mk
++++ b/packages/x11/lib/libfontenc/package.mk
+@@ -14,6 +14,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libxcb/package.mk b/packages/x11/lib/libxcb/package.mk
+index 72d77e20db..013785ad7e 100644
+--- a/packages/x11/lib/libxcb/package.mk
++++ b/packages/x11/lib/libxcb/package.mk
+@@ -19,7 +19,7 @@ PKG_CONFIGURE_OPTS_TARGET="--enable-static \
+                            --disable-selinux \
+                            --disable-xvmc"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+ 
+diff --git a/packages/x11/lib/libxkbfile/package.mk b/packages/x11/lib/libxkbfile/package.mk
+index f2e322bfc1..6b53b1a399 100644
+--- a/packages/x11/lib/libxkbfile/package.mk
++++ b/packages/x11/lib/libxkbfile/package.mk
+@@ -13,6 +13,6 @@ PKG_LONGDESC="Libxkbfile provides an interface to read and manipulate descriptio
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/packages/x11/lib/libxshmfence/package.mk b/packages/x11/lib/libxshmfence/package.mk
+index c0ba6c66af..025c2c45b5 100644
+--- a/packages/x11/lib/libxshmfence/package.mk
++++ b/packages/x11/lib/libxshmfence/package.mk
+@@ -15,6 +15,6 @@ PKG_BUILD_FLAGS="+pic"
+ 
+ PKG_CONFIGURE_OPTS_TARGET="--enable-static --disable-shared"
+ 
+-if [ "${PROJECT}" = "L4T" ]; then
++if [ "${PROJECT}" = "L4T" -o "${DEVICE}" = "Odin" ]; then
+   PKG_CONFIGURE_OPTS_TARGET="${PKG_CONFIGURE_OPTS_TARGET/--disable-shared/--enable-shared}"
+ fi
+diff --git a/scripts/image b/scripts/image
+index 04b62e20b3..23e94df9f1 100755
+--- a/scripts/image
++++ b/scripts/image
+@@ -224,13 +224,20 @@ for MOD in $(find ${INSTALL}/usr/lib/kernel-overlays/ -type f -name *.ko); do
+   ${TARGET_KERNEL_PREFIX}strip --strip-debug ${MOD}
+ done
+ 
+-if [ "${BOOTLOADER}" = "switch-bootloader" ]; then
++if [ "${BOOTLOADER}" = "switch-bootloader" -o "${BOOTLOADER}" = "odin-bootloader" ]; then
+   mv ${INSTALL}/usr/lib/kernel-overlays/base/lib/modules ${INSTALL}/usr/lib/
+-  mv ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware/brcm/* ${INSTALL}/usr/lib/firmware/brcm/
+-  rm -r ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware/brcm
++  if [ "${BOOTLOADER}" = "switch-bootloader" ]; then
++    mv ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware/brcm/* ${INSTALL}/usr/lib/firmware/brcm/
++    rm -r ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware/brcm
++  fi
++  if [ ! -d ${INSTALL}/usr/lib/firmware ]; then
++    mkdir -p ${INSTALL}/usr/lib/firmware
++  fi
+   mv ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware/* ${INSTALL}/usr/lib/firmware/
+   rm -r ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware
+-  cp -PR ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/firmwares/files/* ${INSTALL}/usr/lib/firmware/
++  if [ -d ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/firmwares/files ]; then
++    cp -PR ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/firmwares/files/* ${INSTALL}/usr/lib/firmware/
++  fi
+ else
+   # Symlink overlayed modules to /usr/lib/modules
+   ln -sT /run/kernel-overlays/modules ${INSTALL}/usr/lib/modules
+@@ -317,7 +324,7 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
+     md5sum -t target/KERNEL > target/KERNEL.md5;
+   )
+ 
+-  if [ "${BOOTLOADER}" = "switch-bootloader" ]; then
++  if [ "${BOOTLOADER}" = "switch-bootloader" -o "${BOOTLOADER}" = "odin-bootloader" ]; then
+     if [ "${DISTRO}" = "Lakka" ]; then
+       DISTRO_PATH="lakka"
+     elif [ "${DISTRO}" = "LibreELEC" ]; then
+@@ -330,7 +337,11 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
+     echo "${TARGET_VERSION}" > ${RELEASE_DIR}/${DISTRO_PATH}/RELEASE
+     mkdir -p $RELEASE_DIR/${DISTRO_PATH}/licenses
+     cp ${ROOT}/licenses/* ${RELEASE_DIR}/${DISTRO_PATH}/licenses
+-    cp -r ${RELEASE_DIR}/${DISTRO_PATH}/boot/* ${RELEASE_DIR}/${DISTRO_PATH}/
++    if [ "${BOOTLOADER}" = "odin-bootloader" ]; then
++      cp -r ${RELEASE_DIR}/${DISTRO_PATH}/boot2/* ${RELEASE_DIR}/${DISTRO_PATH}/
++    else
++      cp -r ${RELEASE_DIR}/${DISTRO_PATH}/boot/* ${RELEASE_DIR}/${DISTRO_PATH}/
++    fi
+     mkdir -p ${RELEASE_DIR}/${DISTRO_PATH}/storage
+     cp ${TARGET_IMG}/${IMAGE_NAME}.system ${RELEASE_DIR}/${DISTRO_PATH}/SYSTEM
+     cp ${TARGET_IMG}/${IMAGE_NAME}.kernel ${RELEASE_DIR}/${DISTRO_PATH}/KERNEL
+@@ -344,7 +355,18 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
+     rm -rf ${RELEASE_DIR}/RELEASE
+     rm -rf ${RELEASE_DIR}/CHANGELOG
+     rm -rf ${RELEASE_DIR}/README.md
+-    rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/boot
++    if [ "${BOOTLOADER}" = "switch-bootloader" ]; then
++      rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/boot
++    elif [ "${BOOTLOADER}" = "odin-bootloader" ]; then
++      if [ -d ${RELEASE_DIR}/${DISTRO_PATH}/boot ]; then
++        rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/boot
++      fi
++      rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/boot2
++      rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/EFI
++      mv ${RELEASE_DIR}/boot ${RELEASE_DIR}/boot2
++      mv ${RELEASE_DIR}/boot2/* ${RELEASE_DIR}
++      rm -rf ${RELEASE_DIR}/boot2
++    fi
+   fi
+ 
+   # Create target directory
+@@ -361,7 +383,7 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
+     sha256sum ${IMAGE_NAME}.tar > ${IMAGE_NAME}.tar.sha256
+   )
+ 
+-  if  [ "${BOOTLOADER}" = "switch-bootloader" ]; then
++  if  [ "${BOOTLOADER}" = "switch-bootloader" -o "${BOOTLOADER}" = "odin-bootloader" ]; then
+     rm -rf ${RELEASE_DIR}
+     exit 0
+   fi
