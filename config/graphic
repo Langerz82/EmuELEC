@@ -10,8 +10,11 @@ fi
 
 if [ "${OPENGLES}" = "no" ]; then
   OPENGLES_SUPPORT="no"
+  LIB32_OPENGLES=""
+  OPENGLES=""
 else
   OPENGLES_SUPPORT="yes"
+  LIB32_OPENGLES="${LIB32_OPENGLES}"
 fi
 
 if [ "${VULKAN}" = "no" ]; then

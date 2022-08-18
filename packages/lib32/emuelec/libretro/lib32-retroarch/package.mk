@@ -11,7 +11,7 @@ PKG_SITE="https://github.com/libretro/RetroArch"
 PKG_URL=""
 PKG_LICENSE="GPLv3"
 #PKG_DEPENDS_TARGET="retroarch lib32-zlib lib32-$OPENGLES"
-PKG_DEPENDS_TARGET="retroarch lib32-toolchain lib32-SDL2 lib32-alsa-lib lib32-openssl lib32-freetype lib32-zlib lib32-ffmpeg lib32-libass lib32-$OPENGLES"
+PKG_DEPENDS_TARGET="retroarch lib32-toolchain lib32-SDL2 lib32-alsa-lib lib32-openssl lib32-freetype lib32-zlib lib32-ffmpeg lib32-libass ${LIB32_OPENGLES}"
 # samba avahi nss-mdns  openal-soft
 PKG_LONGDESC="Reference frontend for the libretro API."
 PKG_BUILD_FLAGS="lib32"
