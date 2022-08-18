@@ -11,9 +11,6 @@ make_target() {
 }
 
 makeinstall_target() {
-  if [ ! -d "${INSTALL}" ]; then
-    mkdir -p ${INSTALL}
-  fi
-  echo ${INSTALL}
+  mkdir -p ${INSTALL}
   cp -r ${PKG_BUILD}/install_target/* ${INSTALL}/
 }
