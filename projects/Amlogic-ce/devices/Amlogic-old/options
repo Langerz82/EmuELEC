@@ -102,7 +102,7 @@
     DISPLAYSERVER="no"
 
   # Windowmanager to use (fluxbox / none)
-    WINDOWMANAGER="none"
+    WINDOWMANAGER="no"
 
   # Xorg Graphic drivers to use (all / i915,i965,r200,r300,r600,nvidia,nouveau)
   # Space separated list is supported,
