@@ -21,6 +21,7 @@ PKG_MESON_OPTS_TARGET="-Ddri-drivers= \
                        -Dgallium-omx=disabled \
                        -Dgallium-nine=false \
                        -Dgallium-opencl=disabled \
+                       -Dvulkan-drivers= \
                        -Dshader-cache=enabled \
                        -Dshared-glapi=enabled \
                        -Dopengl=true \
@@ -33,13 +34,16 @@ PKG_MESON_OPTS_TARGET="-Ddri-drivers= \
                        -Dselinux=false \
                        -Dosmesa=false"
 
-if [ "${DISPLAYSERVER}" = "x11" ]; then
+if [ "${DISPLAYSERVER}" = "x11" -a ! "${PROJECT}" = "L4T" ]; then
   PKG_DEPENDS_TARGET+=" xorgproto libXext libXdamage libXfixes libXxf86vm libxcb libX11 libxshmfence libXrandr libglvnd"
   export X11_INCLUDES=
   PKG_MESON_OPTS_TARGET+=" -Dplatforms=x11 -Ddri3=enabled -Dglx=dri -Dglvnd=true"
 elif [ "${DISPLAYSERVER}" = "wl" ]; then
   PKG_DEPENDS_TARGET+=" wayland wayland-protocols libglvnd"
   PKG_MESON_OPTS_TARGET+=" -Dplatforms=wayland -Ddri3=disabled -Dglx=disabled -Dglvnd=true"
+elif [ "${PROJECT}" = "L4T" ]; then
+  PKG_DEPENDS_TARGET+=" libglvnd"
+  PKG_MESON_OPTS_TARGET+=" -Dplatforms="" -Ddri3=enabled -Dglx=disabled -Dglvnd=true"
 else
   PKG_MESON_OPTS_TARGET+=" -Dplatforms="" -Ddri3=disabled -Dglx=disabled -Dglvnd=false"
 fi
@@ -66,7 +70,11 @@ else
   PKG_MESON_OPTS_TARGET+=" -Dgallium-va=disabled"
 fi
 
-if listcontains "${GRAPHIC_DRIVERS}" "vmware"; then
+if listcontains "${GRAPHIC_DRIVERS}" "crocus"; then
+  PKG_MESON_OPTS_TARGET+=" -Dprefer-crocus=true"
+fi
+
+if listcontains "${GRAPHIC_DRIVERS}" "vmware" || listcontains "${GRAPHIC_DRIVERS}" "freedreno"; then
   PKG_MESON_OPTS_TARGET+=" -Dgallium-xa=enabled"
 else
   PKG_MESON_OPTS_TARGET+=" -Dgallium-xa=disabled"
@@ -79,6 +87,13 @@ else
 fi
 
 if [ "${VULKAN_SUPPORT}" = "yes" ]; then
+  if [ "${PROJECT}" = "Generic" -a "${ARCH}" = "x86_64" ]; then
+    PKG_MESON_OPTS_TARGET="${PKG_MESON_OPTS_TARGET//-Dvulkan-drivers=/-Dvulkan-drivers=amd,intel}"
+  elif [ "${PROJECT}" = "RPi" -a "${DEVICE:0:4}" = "RPi4" ]; then
+    PKG_MESON_OPTS_TARGET="${PKG_MESON_OPTS_TARGET//-Dvulkan-drivers=/-Dvulkan-drivers=broadcom}"
+  elif listcontains "${GRAPHIC_DRIVERS}" "freedreno"; then
+    PKG_MESON_OPTS_TARGET="${PKG_MESON_OPTS_TARGET//-Dvulkan-drivers=/-Dvulkan-drivers=freedreno}"
+  fi
   PKG_DEPENDS_TARGET+=" ${VULKAN} vulkan-tools"
   PKG_MESON_OPTS_TARGET+=" -Dvulkan-drivers=${VULKAN_DRIVERS_MESA// /,}"
 else

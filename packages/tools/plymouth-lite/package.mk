@@ -19,7 +19,11 @@ pre_configure_init() {
 makeinstall_init() {
   mkdir -p ${INSTALL}/usr/bin
     cp ply-image ${INSTALL}/usr/bin
-
+  if [ ! "${BOOTLOADER}" = "switch-bootloader" -a ! "${BOOTLOADER}" = "odin-bootloader" ]; then
+    mkdir -p ${INSTALL}/splash
+      find_file_path splash/splash.conf && cp ${FOUND_PATH} ${INSTALL}/splash
+      find_file_path "splash/splash-*.png" && cp ${FOUND_PATH} ${INSTALL}/splash
+  else
   mkdir -p ${INSTALL}/splash
     find_file_path splash/splash.conf && cp ${FOUND_PATH} ${INSTALL}/splash
      if [ "${DEVICE}" == "OdroidGoAdvance" ]; then
@@ -27,4 +31,5 @@ makeinstall_init() {
     else
 		find_file_path "splash/splash-*.png" && cp ${FOUND_PATH} ${INSTALL}/splash
     fi
+  fi
 }

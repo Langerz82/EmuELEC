@@ -27,6 +27,21 @@ case "${LINUX}" in
     PKG_URL="https://github.com/raspberrypi/linux/archive/${PKG_VERSION}.tar.gz"
     PKG_SOURCE_NAME="linux-${LINUX}-${PKG_VERSION}.tar.gz"
     ;;
+  L4T)
+    PKG_VERSION=${DEVICE}
+    PKG_URL="l4t-kernel-sources"
+    GET_HANDLER_SUPPORT="l4t-kernel-sources"
+    PKG_PATCH_DIRS="${PROJECT} ${PROJECT}/${DEVICE}"
+    PKG_SOURCE_NAME="linux-$DEVICE.tar.gz"
+    #Need to find a better way to do this for l4t platforms!
+    PKG_SHA256=$L4T_COMBINED_KERNEL_SHA256
+    ;;
+  ayn-odin)
+   PKG_SHA256="b425b70a6379f3415ed349f5c5719d4a6f315523"
+   PKG_VERSION="${PKG_SHA256}"
+   PKG_URL="https://gitlab.com/tjstyle/linux.git"
+   PKG_PATCH_DIRS="default ayn-odin"
+   ;;
   *)
     PKG_VERSION="5.19"
     PKG_SHA256="ff240c579b9ee1affc318917de07394fc1c3bb49dac25ec1287370c2e15005a8"
@@ -37,7 +52,14 @@ esac
 
 PKG_KERNEL_CFG_FILE=$(kernel_config_path) || die
 
+if listcontains "${UBOOT_FIRMWARE}" "crust"; then
+  PKG_PATCH_DIRS+=" crust"
+fi
+
+# PKG_PATCH_DIRS+=" ${DISTRO}-${LINUX}"
+
 if [ -n "${KERNEL_TOOLCHAIN}" ]; then
+  PKG_DEPENDS_HOST+=" gcc-${KERNEL_TOOLCHAIN}:host"
   PKG_DEPENDS_TARGET+=" gcc-${KERNEL_TOOLCHAIN}:host"
   HEADERS_ARCH=${TARGET_ARCH}
 else
@@ -79,19 +101,63 @@ post_patch() {
 }
 
 make_host() {
-  :
+  if [ "${LINUX}" = "L4T" ]; then
+    CURRENT_PATH=${PATH}
+    export PATH=${TOOLCHAIN}/lib/gcc-arm-aarch64-none-linux-gnu/bin/:${PATH}
+
+    make \
+      ARCH=arm64 \
+      CROSS_COMPILE=${KERNEL_TOOLCHAIN}- \
+      olddefconfig
+     make \
+       ARCH=arm64 \
+       CROSS_COMPILE=${KERNEL_TOOLCHAIN}- \
+       prepare
+     #make \
+     #  ARCH=arm64 \
+     #  CROSS_COMPILE=${KERNEL_TOOLCHAIN}- \
+     #  modules_prepare
+     make \
+       ARCH=arm64 \
+       headers_check
+
+     export PATH=${CURRENT_PATH}
+  elif [ "${LINUX}" = "ayn-odin" ]; then
+    :
+  else
+   make \
+      ARCH=${HEADERS_ARCH:-$TARGET_KERNEL_ARCH} \
+      HOSTCC="${TOOLCHAIN}/bin/host-gcc" \
+      HOSTCXX="${TOOLCHAIN}/bin/host-g++" \
+      HOSTCFLAGS="${HOST_CFLAGS}" \
+      HOSTCXXFLAGS="${HOST_CXXFLAGS}" \
+      HOSTLDFLAGS="${HOST_LDFLAGS}" \
+      headers_check
+  fi
 }
 
 makeinstall_host() {
-  make \
-    ARCH=${HEADERS_ARCH:-${TARGET_KERNEL_ARCH}} \
-    HOSTCC="${TOOLCHAIN}/bin/host-gcc" \
-    HOSTCXX="${TOOLCHAIN}/bin/host-g++" \
-    HOSTCFLAGS="${HOST_CFLAGS}" \
-    HOSTCXXFLAGS="${HOST_CXXFLAGS}" \
-    HOSTLDFLAGS="${HOST_LDFLAGS}" \
-    INSTALL_HDR_PATH=dest \
-    headers_install
+  if [ "${LINUX}" = "L4T" ]; then
+    CURRENT_PATH=${PATH}
+    export PATH=${TOOLCHAIN}/lib/gcc-arm-aarch64-none-linux-gnu/bin/:${PATH}
+    make \
+      ARCH=arm64 \
+      CROSS_COMPILE=${KERNEL_TOOLCHAIN}- \
+      INSTALL_HDR_PATH=dest \
+      headers_install
+    export PATH=${CURRENT_PATH}
+  else
+    make \
+      ARCH=${HEADERS_ARCH:-$TARGET_KERNEL_ARCH} \
+      HOSTCC="${TOOLCHAIN}/bin/host-gcc" \
+      HOSTCXX="${TOOLCHAIN}/bin/host-g++" \
+      HOSTCFLAGS="${HOST_CFLAGS}" \
+      HOSTCXXFLAGS="${HOST_CXXFLAGS}" \
+      HOSTLDFLAGS="${HOST_LDFLAGS}" \
+      INSTALL_HDR_PATH=dest \
+      headers_install
+  fi
+
   mkdir -p ${SYSROOT_PREFIX}/usr/include
     cp -R dest/include/* ${SYSROOT_PREFIX}/usr/include
 }
@@ -147,6 +213,84 @@ pre_make_target() {
     ${PKG_BUILD}/scripts/config --disable CONFIG_WIREGUARD
   fi
 
+  # enable nouveau driver when required
+  if [ ! "${LINUX}" = "L4T" ]; then
+    if listcontains "${GRAPHIC_DRIVERS}" "nouveau"; then
+      ${PKG_BUILD}/scripts/config --module CONFIG_DRM_NOUVEAU
+      ${PKG_BUILD}/scripts/config --enable CONFIG_DRM_NOUVEAU_BACKLIGHT
+      ${PKG_BUILD}/scripts/config --set-val CONFIG_NOUVEAU_DEBUG 5
+      ${PKG_BUILD}/scripts/config --set-val CONFIG_NOUVEAU_DEBUG_DEFAULT 3
+    fi
+  fi
+
+  # enable MIDI for Lakka on x86_64, i386 has options set in linux config file
+  if [ "${DISTRO}" = "Lakka" -a "${TARGET_ARCH}" = "x86_64" ]; then
+    ${PKG_BUILD}/scripts/config \
+                                --module CONFIG_SND_SEQ_DEVICE \
+                                --module CONFIG_SND_SEQUENCER \
+                                --enable CONFIG_SND_SEQ_HRTIMER_DEFAULT \
+                                --module CONFIG_SND_SEQ_MIDI_EVENT \
+                                --module CONFIG_SND_SEQ_MIDI \
+                                --module CONFIG_SND_SEQ_MIDI_EMUL \
+                                --module CONFIG_SND_SEQ_VIRMIDI \
+                                --module CONFIG_SND_OPL3_LIB_SEQ \
+                                --module CONFIG_SND_EMU10K1_SEQ \
+                                --module CONFIG_SND_SYNTH_EMUX
+  fi
+
+  # enable Gamecon for Lakka on x86_64, i386 has options set in linux config file
+  if [ "${DISTRO}" = "Lakka" -a "${TARGET_ARCH}" = "x86_64" ]; then
+    ${PKG_BUILD}/scripts/config \
+                                --module CONFIG_JOYSTICK_GAMECON \
+                                --module CONFIG_PARPORT \
+                                --module CONFIG_PARPORT_PC \
+                                --module CONFIG_PARPORT_SERIAL \
+                                --enable CONFIG_PARPORT_PC_FIFO \
+                                --enable CONFIG_PARPORT_PC_SUPERIO \
+                                --module CONFIG_PARPORT_AX88796 \
+                                --enable CONFIG_PARPORT_1284 \
+                                --enable CONFIG_PARPORT_NOT_PC
+  fi
+
+  # enable Ethernet for Intel NUC11
+  if [ "${DISTRO}" = "EmuELEC" -a "${PROJECT}" = "Generic" ]; then
+    ${PKG_BUILD}/scripts/config --enable CONFIG_IGC
+  fi
+
+  # enable Ventoy support
+  if [ "${DISTRO}" = "EmuELEC" -a "${PROJECT}" = "Generic" ]; then
+    ${PKG_BUILD}/scripts/config --enable CONFIG_MD \
+                                --enable CONFIG_BLK_DEV_DM_BUILTIN \
+                                --enable CONFIG_BLK_DEV_DM
+  fi
+
+  # enable Joycon and Dualsense on default and raspberrypi kernels for Lakka
+  if [ "${DISTRO}" = "EmuELEC" ] && [ "${LINUX}" = "default" -o "${LINUX}" = "raspberrypi" ]; then
+    ${PKG_BUILD}/scripts/config \
+                                --enable CONFIG_HID_NINTENDO \
+                                --enable CONFIG_NINTENDO_FF \
+                                --enable CONFIG_HID_PLAYSTATION \
+                                --enable CONFIG_PLAYSTATION_FF
+  fi
+
+  # enable additional USB / WIFI for CM4 / RetroDreamer / PiBoyDMG
+  if [ "${DISTRO}" = "EmuELEC" ] && [ "${DEVICE:0:4}" = "RPi4" ]; then
+    ${PKG_BUILD}/scripts/config --module CONFIG_USB_DWC2
+    ${PKG_BUILD}/scripts/config --module CONFIG_R8188EU
+  fi
+
+  # enable xpi-gamecon for PiBoyDMG
+  if [ "${DISTRO}" = "EmuELEC" ] && [ "${DEVICE}" = "RPi4-PiBoyDmg" ]; then
+    ${PKG_BUILD}/scripts/config --enable CONFIG_XPI_GAMECON
+  fi
+
+  # install extra dts files for Lakka
+  if [ "${DISTRO}" = "EmuELEC" ]; then
+    for f in ${PROJECT_DIR}/${PROJECT}/config/*-overlay.dts ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/config/*-overlay.dts ; do
+      [ -f "${f}" ] && cp -v ${f} ${PKG_BUILD}/arch/${TARGET_KERNEL_ARCH}/boot/dts/overlays || true
+    done
+  fi
+
   if [ "${TARGET_ARCH}" = "x86_64" ]; then
     # copy some extra firmware to linux tree
     mkdir -p ${PKG_BUILD}/external-firmware
@@ -170,7 +314,57 @@ pre_make_target() {
     ${PKG_BUILD}/scripts/config --set-str CONFIG_EXTRA_FIRMWARE_DIR "external-firmware"
   fi
 
-  kernel_make oldconfig
+  # enable rumble for PID-compliant game controllers
+  if [ "${DISTRO}" = "EmuELEC" ] && [ ! "${LINUX}" = "L4T" ]; then
+    ${PKG_BUILD}/scripts/config --enable CONFIG_HID_PID
+  fi
+
+  if [ ! "${LINUX}" = "L4T" ]; then
+    if [ -f "${DISTRO_DIR}/${DISTRO}/kernel_options_overrides" ]; then
+      while read OPTION; do
+        [ -z "${OPTION}" -o -n "$(echo "${OPTION}" | grep '^#')" ] && continue
+  
+        OPTION_NAME=${OPTION%%=*}
+        OPTION_VAL_OVR=${OPTION##*=}
+        OPTION_VAL_CFG=$(${PKG_BUILD}/scripts/config --state ${OPTION_NAME})
+
+        if [ "${OPTION_VAL_OVR}" = "${OPTION_VAL_CFG}" ] || [ "${OPTION_VAL_OVR}" = "n" -a "${OPTION_VAL_CFG}" = "undef" ]; then
+          continue
+        fi
+
+        case ${OPTION_VAL_OVR} in
+          y)
+            OPTION_ACTION="enable"
+            ;;
+          m)
+            OPTION_ACTION="module"
+            ;;
+          n)
+            OPTION_ACTION="disable"
+            ;;
+          *)
+            OPTION_ACTION="undefine"
+            OPTION_VAL_OVR="u"
+            ;;
+        esac
+
+        echo -e "Kernel config override: [${OPTION_VAL_OVR}] ${OPTION_NAME}"
+        ${PKG_BUILD}/scripts/config --${OPTION_ACTION} ${OPTION_NAME}
+
+      done < ${DISTRO_DIR}/${DISTRO}/kernel_options_overrides
+
+    fi
+  fi
+
+  if [ "${LINUX}" = "L4T" ]; then
+    kernel_make olddefconfig
+    kernel_make prepare
+    kernel_make modules_prepare
+  elif [ "${DISTRO}" = "Lakka" ]; then
+    kernel_make olddefconfig
+  else
+    kernel_make oldconfig
+  fi
 
   if [ -f "${DISTRO_DIR}/${DISTRO}/kernel_options" ]; then
     while read OPTION; do

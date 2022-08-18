@@ -25,10 +25,10 @@ PKG_MESON_OPTS_TARGET="-Dnouveau=false \
                        -Dinstall-test-programs=true \
                        -Dudev=false"
 
-listcontains "${GRAPHIC_DRIVERS}" "(crocus|i915|iris)" &&
+listcontains "${GRAPHIC_DRIVERS}" "(crocus|iris|i915|i965)" &&
   PKG_MESON_OPTS_TARGET+=" -Dintel=true" || PKG_MESON_OPTS_TARGET+=" -Dintel=false"
 
-listcontains "${GRAPHIC_DRIVERS}" "(r300|r600|radeonsi)" &&
+listcontains "${GRAPHIC_DRIVERS}" "(r200|r300|r600|radeonsi)" &&
   PKG_MESON_OPTS_TARGET+=" -Dradeon=true" || PKG_MESON_OPTS_TARGET+=" -Dradeon=false"
 
 listcontains "${GRAPHIC_DRIVERS}" "radeonsi" &&
@@ -46,7 +46,23 @@ listcontains "${GRAPHIC_DRIVERS}" "freedreno" &&
 listcontains "${GRAPHIC_DRIVERS}" "etnaviv" &&
   PKG_MESON_OPTS_TARGET+=" -Detnaviv=true" || PKG_MESON_OPTS_TARGET+=" -Detnaviv=false"
 
+listcontains "${GRAPHIC_DRIVERS}" "nouveau" &&
+  PKG_MESON_OPTS_TARGET+=" -Dnouveau=true" || PKG_MESON_OPTS_TARGET+=" -Dnouveau=false"
+
+listcontains "${GRAPHIC_DRIVERS}" "freedreno" &&
+  PKG_MESON_OPTS_TARGET+=" -Dfreedreno=true" || PKG_MESON_OPTS_TARGET+=" -Dfreedreno=false"
+
+if [ "${DISTRO}" = "Lakka" ]; then
+  PKG_MESON_OPTS_TARGET="${PKG_MESON_OPTS_TARGET//-Dlibkms=false/-Dlibkms=true}"
+fi
+
 post_makeinstall_target() {
+  mkdir -p ${INSTALL}/usr/bin
+    cp -a ${PKG_BUILD}/.${TARGET_NAME}/tests/modetest/modetest ${INSTALL}/usr/bin/
+  if [ "$PROJECT" = "L4T" ]; then
+    rm ${INSTALL}/usr/lib/libdrm.so.2
+  fi
+
   # Remove all test programs installed by install-test-programs=true except modetest
   # Do not "not use" the ninja install and replace this with a simple "cp modetest"
   # as ninja strips the unnecessary build rpath during the install.
