@@ -55,6 +55,7 @@ function do_mkimage() {
     SYSTEM_PART_START="${SYSTEM_PART_START}" \
     OVA_SIZE="${OVA_SIZE}" \
     SUBDEVICE="${SUBDEVICE}" \
+    SKIP_VIRTUAL_APPLIANCE="${SKIP_VIRTUAL_APPLIANCE}" \
     ${SCRIPTS}/mkimage
 }
 
@@ -62,6 +63,18 @@ if [ -n "${CUSTOM_GIT_HASH}" ]; then
   GIT_HASH="${CUSTOM_GIT_HASH}"
 else
   GIT_HASH=$(git rev-parse HEAD)
+fi
+
+if [ "${LIBREELEC_VERSION}" = "devel" ]; then
+  GIT_ABBREV=${GIT_HASH:0:7}
+  DEVEL_VERSION=${LIBREELEC_VERSION}
+  case "${BUILD_PERIODIC}" in
+    nightly) LIBREELEC_VERSION=nightly-$(date +%Y%m%d)-${GIT_ABBREV};;
+    daily)   LIBREELEC_VERSION=daily-$(date +%Y%j)-${GIT_ABBREV};;
+    weekly)  LIBREELEC_VERSION=weekly-$(date +%G%V)-${GIT_ABBREV};;
+    monthly) LIBREELEC_VERSION=monthly-$(date +%Y%m)-${GIT_ABBREV};;
+    *)       LIBREELEC_VERSION=devel-$(date +%Y%m%d%H%M%S)-${GIT_ABBREV};;
+  esac
 fi
 
 case "${BUILD_PERIODIC}" in
@@ -120,7 +133,12 @@ TARGET_VERSION="${LIBREELEC_ARCH}-${LIBREELEC_VERSION}"
 if [ -n "${CUSTOM_IMAGE_NAME}" ]; then
   IMAGE_NAME="${CUSTOM_IMAGE_NAME}"
 else
-  IMAGE_NAME="${DISTRONAME}-${TARGET_VERSION}"
+  if [ "${DEVEL_VERSION}" = "devel" ]; then
+    IMAGE_NAME="${DISTRONAME}-${LIBREELEC_ARCH}-${OS_VERSION}-${LIBREELEC_VERSION}"
+  else
+    IMAGE_NAME="${DISTRONAME}-${TARGET_VERSION}"
+  fi
+
 
   if [ -n "${UBOOT_SYSTEM}" ] && [ "${UBOOT_SYSTEM}" != "${DEVICE:-${PROJECT}}" ]; then
     IMAGE_NAME="${IMAGE_NAME}-${UBOOT_SYSTEM}"
@@ -252,11 +270,27 @@ for MOD in $(find ${INSTALL}/usr/lib/kernel-overlays/ -type f -name *.ko); do
   ${TARGET_KERNEL_PREFIX}strip --strip-debug ${MOD}
 done
 
-# Symlink overlayed modules to /usr/lib/modules
-ln -sT /run/kernel-overlays/modules ${INSTALL}/usr/lib/modules
+if [ "${BOOTLOADER}" = "switch-bootloader" -o "${BOOTLOADER}" = "odin-bootloader" ]; then
+  mv ${INSTALL}/usr/lib/kernel-overlays/base/lib/modules ${INSTALL}/usr/lib/
+  if [ "${BOOTLOADER}" = "switch-bootloader" ]; then
+    mv ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware/brcm/* ${INSTALL}/usr/lib/firmware/brcm/
+    rm -r ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware/brcm
+  fi
+  if [ ! -d ${INSTALL}/usr/lib/firmware ]; then
+    mkdir -p ${INSTALL}/usr/lib/firmware
+  fi
+  mv ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware/* ${INSTALL}/usr/lib/firmware/
+  rm -r ${INSTALL}/usr/lib/kernel-overlays/base/lib/firmware
+  if [ -d ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/firmwares/files ]; then
+    cp -PR ${PROJECT_DIR}/${PROJECT}/devices/${DEVICE}/firmwares/files/* ${INSTALL}/usr/lib/firmware/
+  fi
+else
+  # Symlink overlayed modules to /usr/lib/modules
+  ln -sT /run/kernel-overlays/modules ${INSTALL}/usr/lib/modules
 
-# Symlink overlayed firmware to /usr/lib/firmware
-ln -sT /run/kernel-overlays/firmware ${INSTALL}/usr/lib/firmware
+  # Symlink overlayed firmware to /usr/lib/firmware
+  ln -sT /run/kernel-overlays/firmware ${INSTALL}/usr/lib/firmware
+fi
 
 # Make target dir
 mkdir -p ${TARGET_IMG}
@@ -336,6 +370,51 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
     md5sum -t target/KERNEL > target/KERNEL.md5;
   )
 
+  if [ "${BOOTLOADER}" = "switch-bootloader" -o "${BOOTLOADER}" = "odin-bootloader" ]; then
+    if [ "${DISTRO}" = "Lakka" ]; then
+      DISTRO_PATH="lakka"
+    elif [ "${DISTRO}" = "LibreELEC" ]; then
+      DISTRO_PATH="libreelec"
+    fi
+
+    mkdir -p ${RELEASE_DIR}/${DISTRO_PATH}
+    cp ${ROOT}/README* ${RELEASE_DIR}/${DISTRO_PATH}
+    cp ${ROOT}/CHANGELOG* ${RELEASE_DIR}/${DISTRO_PATH}
+    echo "${TARGET_VERSION}" > ${RELEASE_DIR}/${DISTRO_PATH}/RELEASE
+    mkdir -p $RELEASE_DIR/${DISTRO_PATH}/licenses
+    cp ${ROOT}/licenses/* ${RELEASE_DIR}/${DISTRO_PATH}/licenses
+    if [ "${BOOTLOADER}" = "odin-bootloader" ]; then
+      cp -r ${RELEASE_DIR}/${DISTRO_PATH}/boot2/* ${RELEASE_DIR}/${DISTRO_PATH}/
+    else
+      cp -r ${RELEASE_DIR}/${DISTRO_PATH}/boot/* ${RELEASE_DIR}/${DISTRO_PATH}/
+    fi
+    mkdir -p ${RELEASE_DIR}/${DISTRO_PATH}/storage
+    cp ${TARGET_IMG}/${IMAGE_NAME}.system ${RELEASE_DIR}/${DISTRO_PATH}/SYSTEM
+    cp ${TARGET_IMG}/${IMAGE_NAME}.kernel ${RELEASE_DIR}/${DISTRO_PATH}/KERNEL
+    ( cd ${RELEASE_DIR};
+      md5sum -t ${DISTRO_PATH}/SYSTEM > ${DISTRO_PATH}/SYSTEM.md5;
+      md5sum -t ${DISTRO_PATH}/KERNEL > ${DISTRO_PATH}/KERNEL.md5;
+    )
+
+    rm -rf ${RELEASE_DIR}/target
+    rm -rf ${RELEASE_DIR}/licenses
+    rm -rf ${RELEASE_DIR}/RELEASE
+    rm -rf ${RELEASE_DIR}/CHANGELOG
+    rm -rf ${RELEASE_DIR}/README.md
+    if [ "${BOOTLOADER}" = "switch-bootloader" ]; then
+      rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/boot
+    elif [ "${BOOTLOADER}" = "odin-bootloader" ]; then
+      if [ -d ${RELEASE_DIR}/${DISTRO_PATH}/boot ]; then
+        rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/boot
+      fi
+      rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/boot2
+      rm -rf ${RELEASE_DIR}/${DISTRO_PATH}/EFI
+      mv ${RELEASE_DIR}/boot ${RELEASE_DIR}/boot2
+      mv ${RELEASE_DIR}/boot2/* ${RELEASE_DIR}
+      rm -rf ${RELEASE_DIR}/boot2
+    fi
+  fi
+
   # Create target directory
   mkdir -p ${TARGET_IMG}
 
@@ -349,6 +428,11 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
   ( cd ${TARGET_IMG}
     sha256sum ${IMAGE_NAME}.tar > ${IMAGE_NAME}.tar.sha256
   )
+
+  if  [ "${BOOTLOADER}" = "switch-bootloader" -o "${BOOTLOADER}" = "odin-bootloader" ]; then
+    rm -rf ${RELEASE_DIR}
+    exit 0
+  fi
 
   # Create image files if requested
   if [[ ( "${1}" = "noobs" || "${1}" = "mkimage" ) && -n "${BOOTLOADER}" ]]; then
@@ -435,6 +519,9 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
         -e "s%@ROOT_PASSWORD@%${ROOT_PASSWORD}%g" \
         -e "s%@NOOBS_SUPPORTED_MODELS@%${NOOBS_SUPPORTED_MODELS}%g" \
         -i ${RELEASE_DIR}/${NOOBS_DISTRO}/os.json
+
+    sed -e "s%@DISTRONAME@%${DISTRONAME}%g" \
+        -i ${RELEASE_DIR}/${NOOBS_DISTRO}/partition_setup.sh
 
     sed -e "s%@DISTRONAME@%${DISTRONAME}%g" \
         -e "s%@PROJECT@%${DEVICE:-${PROJECT}}%g" \
