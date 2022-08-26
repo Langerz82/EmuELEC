@@ -31,7 +31,7 @@ if [ "${DEVICE}" = "Amlogic-ng" ] || [ "${DEVICE}" = "Amlogic-old" ]; then
   PKG_PATCH_DIRS="${DEVICE}"
 fi
 
-if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ] || [ "$DEVICE" == "RK356x" ] || [ "$DEVICE" == "OdroidM1" ]; then
+if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ] || [ "$DEVICE" == "RK356x" ] || [ "$DEVICE" == "OdroidM1" ] || [ "$DEVICE" == "OdroidGoAdvanc" ]; then
 PKG_DEPENDS_TARGET+=" libdrm librga"
 PKG_PATCH_DIRS="OdroidGoAdvance"
 fi
@@ -46,13 +46,11 @@ pre_configure_target() {
 export CFLAGS="$CFLAGS -O3 -fno-tree-vectorize"
 
 TARGET_CONFIGURE_OPTS=""
+
 PKG_CONFIGURE_OPTS_TARGET="--disable-qt \
                            --enable-alsa \
                            --enable-udev \
-                           --disable-opengl1 \
-                           --disable-opengl \
                            --enable-egl \
-                           --enable-opengles \
                            --disable-wayland \
                            --disable-x11 \
                            --enable-zlib \
@@ -62,6 +60,25 @@ PKG_CONFIGURE_OPTS_TARGET="--disable-qt \
                            --disable-sdl \
                            --enable-sdl2 \
                            --enable-ffmpeg"
+
+if [ "${OPENGLES_SUPPORT}" = yes ]; then
+	PKG_DEPENDS_TARGET+=" ${OPENGLES}"
+	PKG_CONFIGURE_OPTS_TARGET+=" --enable-opengles"
+	if [[ ${DEVICE} =~ ^RPi4.* ]] || [ ${DEVICE} = "RK3288" ] || [ "${DEVICE}" = "RK3399" ] || [ "${DEVICE}" = "Odin" ]; then
+		PKG_CONFIGURE_OPTS_TARGET+=" --enable-opengles3 \
+	                              --enable-opengles3_1"
+	fi
+else
+ 	PKG_CONFIGURE_OPTS_TARGET+=" --disable-opengles"
+fi
+
+if [ "${OPENGL_SUPPORT}" = yes -a ! "${OPENGLES_SUPPORT}" = "yes" ]; then
+	PKG_DEPENDS_TARGET+=" ${OPENGL}"
+	PKG_CONFIGURE_OPTS_TARGET+=" --enable-opengl"
+	PKG_MAKE_OPTS_TARGET+=" HAVE_OPENGL1=1"
+else
+	PKG_CONFIGURE_OPTS_TARGET+=" --disable-opengl"
+fi
 
 if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ] || [ "$DEVICE" == "RK356x" ] || [ "$DEVICE" == "OdroidM1" ]; then
 PKG_CONFIGURE_OPTS_TARGET+=" --enable-opengles3 \
@@ -207,7 +224,7 @@ fi
   echo "menu_show_restart_retroarch = \"false\"" >> $INSTALL/etc/retroarch.cfg
   echo "menu_show_quit_retroarch = \"true\"" >> $INSTALL/etc/retroarch.cfg
   
-if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ]; then
+if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ] || [ "$DEVICE" == "Odin" ]; then
     echo "xmb_layout = 2" >> $INSTALL/etc/retroarch.cfg
     echo "menu_widget_scale_auto = false" >> $INSTALL/etc/retroarch.cfg
     echo "menu_widget_scale_factor = 2.00" >> $INSTALL/etc/retroarch.cfg

@@ -32,6 +32,10 @@ pre_configure_target() {
      fi
       ;;
   esac
+
+if [[ ${PROJECT} = "Ayn" && ${DEVICE} = "Odin" ]]; then
+	AMIBERRY_PLATFORM="a64"
+fi
  
 if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ]; then
 if [ $ARCH == "arm" ]; then
