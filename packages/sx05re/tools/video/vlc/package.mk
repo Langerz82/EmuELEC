@@ -135,7 +135,7 @@ DISABLED_FEATURES="--disable-dependency-tracking \
 		DISABLED_FEATURES+=" --disable-pulse"
 	fi 
 
-	if [[ ${PROJECT} = "Ayn" && ${DEVICE} = "Odin" ]]; then
+	if [[ ${OPENGLES} = "" ]]; then
 		PKG_DEPENDS_TARGET+=" ${OPENGL}"
 		ENABLED_FEATURES=$(echo $ENABLED_FEATURES | sed -e 's/--enable-gles2//g')
 		echo "ENABLED_FEATURES=$ENABLED_FEATURES"

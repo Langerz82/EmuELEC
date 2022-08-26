@@ -14,12 +14,20 @@ PKG_LONGDESC="PPSSPP Standalone"
 GET_HANDLER_SUPPORT="git"
 PKG_BUILD_FLAGS="-lto"
 
+if [[ ${PROJECT} = "Ayn" && ${DEVICE} = "Odin" ]]; then
+	#PKG_DEPENDS_TARGET+=" ${OPENGL}"
+	#PKG_CMAKE_OPTS_TARGET=$(echo $PKG_CMAKE_OPTS_TARGET | sed -e 's/-DUSING_GLES2=ON/-DUSING_GLES2=OFF/g')	
+	PKG_TOOLCHAIN="manual"
+else
+
 PKG_CMAKE_OPTS_TARGET+="-DUSE_SYSTEM_FFMPEG=ON \
                         -DUSING_FBDEV=ON \
                         -DUSING_EGL=ON \
                         -DUSING_GLES2=ON \
                         -DUSING_X11_VULKAN=OFF \
                         -DUSE_DISCORD=OFF"
+
+
 
 if [ $ARCH == "aarch64" ]; then
 PKG_CMAKE_OPTS_TARGET+=" -DARM64=ON"
@@ -29,7 +37,7 @@ fi
 
 
 pre_configure_target() {
-if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ]; then
+if [ "$DEVICE" == "OdroidGoAdvance" ] || [ "$DEVICE" == "GameForce" ] || [ ${DEVICE} = "Odin" ]; then
 	sed -i "s|include_directories(/usr/include/drm)|include_directories(${SYSROOT_PREFIX}/usr/include/drm)|" $PKG_BUILD/CMakeLists.txt
 fi
 }
@@ -52,3 +60,5 @@ makeinstall_target() {
     rm $INSTALL/usr/config/ppsspp/assets/gamecontrollerdb.txt
     ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt $INSTALL/usr/config/ppsspp/assets/gamecontrollerdb.txt
 } 
+
+fi
