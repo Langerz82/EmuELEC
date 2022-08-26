@@ -1,0 +1,13 @@
+diff --git a/meson.build b/meson.build
+index 9ea7e1d..d85fcae 100644
+--- a/meson.build
++++ b/meson.build
+@@ -41,7 +41,7 @@ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+         '-Werror=sequence-point',
+         '-Werror=return-type',
+         '-Werror=trigraphs',
+-        '-Werror=array-bounds',
++        '-Warray-bounds',
+         '-Werror=write-strings',
+         '-Werror=address',
+         '-Werror=int-to-pointer-cast',

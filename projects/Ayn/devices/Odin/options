@@ -42,6 +42,7 @@ BOOTLOADER="odin-bootloader"
     OPENGL="mesa"
     OPENGLES="no"
 
+    VULKAN=""
     if [ "${DISTRO}" = "EmuELEC" ]; then
       # Enable Vulkan for Lakka
         VULKAN="vulkan-loader"
