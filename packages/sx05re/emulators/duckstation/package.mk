@@ -12,10 +12,14 @@ PKG_SECTION="libretro"
 PKG_SHORTDESC="Fast PlayStation 1 emulator for x86-64/AArch32/AArch64 "
 PKG_TOOLCHAIN="cmake"
 
-if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ]; then
+if [ "${DEVICE}" == "OdroidGoAdvance" ] || [ "${DEVICE}" == "GameForce" ] || [ "${DEVICE}" == "Odin" ]; then
 	EXTRA_OPTS+=" -DUSE_DRMKMS=ON -DUSE_FBDEV=OFF -DUSE_MALI=OFF"
 else
 	EXTRA_OPTS+=" -DUSE_DRMKMS=OFF -DUSE_FBDEV=ON -DUSE_MALI=ON"
+fi
+
+if [ ${PROJECT} = "Ayn" ] && [ ${DEVICE} = "Odin" ]; then
+	PKG_DEPENDS_TARGET+=" ${OPENGL}"
 fi
 
 pre_configure_target() {

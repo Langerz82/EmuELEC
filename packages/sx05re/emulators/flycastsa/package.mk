@@ -11,13 +11,28 @@ PKG_LONGDESC="Flycast is a multiplatform Sega Dreamcast, Naomi and Atomiswave em
 PKG_TOOLCHAIN="cmake"
 PKG_GIT_CLONE_BRANCH="master"
 
+# TODO - Skipped for now needs to skip search for OpenGLES.
+if [[ ${PROJECT} = "Ayn" && ${DEVICE} = "Odin" ]]; then
+	PKG_TOOLCHAIN=manual
+else
 
 if [ "${ARCH}" == "arm" ]; then
 	PKG_PATCH_DIRS="arm"
 fi
+
+
+if [ ${OPENGLES} = "" ]; then
+	PKG_DEPENDS_TARGET+=" ${OPENGL}"
+	#PKG_CMAKE_OPTS_TARGET=$(cat PKG_CMAKE_OPTS_TARGET | sed -e 's/-DUSE_GLES=ON/-DUSE_GLES=OFF/g')
+	PKG_CMAKE_OPTS_TARGET+="-DUSE_OPENGL=ON -DUSE_GLES=OFF -USE_GLES2=OFF -DUSE_VULKAN=OFF"
+else
+	PKG_CMAKE_OPTS_TARGET+="-DUSE_GLES=ON -DUSE_VULKAN=OFF"
+fi
+
 pre_configure_target() {
 export CXXFLAGS="${CXXFLAGS} -Wno-error=array-bounds"
-PKG_CMAKE_OPTS_TARGET+="-DUSE_GLES=ON -DUSE_VULKAN=OFF"
+#PKG_CMAKE_OPTS_TARGET+="-DUSE_GLES=ON -DUSE_VULKAN=OFF"
+
 }
 
 makeinstall_target() {
@@ -28,3 +43,5 @@ makeinstall_target() {
 	chmod +x $INSTALL/usr/bin/flycast.sh
 	chmod +x $INSTALL/usr/bin/set_flycast_joy.sh
 }
+
+#fi

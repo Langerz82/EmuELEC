@@ -13,11 +13,18 @@ PKG_SHORTDESC="mupen64plus"
 PKG_LONGDESC="Mupen64Plus Standalone"
 PKG_TOOLCHAIN="manual"
 
-PKG_MAKE_OPTS_TARGET+="USE_GLES=1"
+echo "OPENGLES=${OPENGLES}"
+if [ ${OPENGLES} = "" ]; then
+	export USE_GLES=0
+	PKG_DEPENDS_TARGET+=" ${OPENGL}"
+  PKG_MAKE_OPTS_TARGET="USE_GLES=0"
+else
+	export USE_GLES=1
+  PKG_MAKE_OPTS_TARGET="USE_GLES=1"
+fi
 
 make_target() {
-  export HOST_CPU=aarch64
-  export USE_GLES=1
+  export HOST_CPU=aarch64	
   export SDL_CFLAGS="-I$SYSROOT_PREFIX/usr/include/SDL2 -D_REENTRANT"
   export SDL_LDLIBS="-lSDL2_net -lSDL2"
   export CROSS_COMPILE="$TARGET_PREFIX"
