@@ -13,6 +13,10 @@ PKG_SHORTDESC="mupen64plus-ui-console"
 PKG_LONGDESC="Mupen64Plus Standalone Console"
 PKG_TOOLCHAIN="manual"
 
+if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
+	PKG_TOOLCHAIN=manual
+else
+
 PKG_MAKE_OPTS_TARGET+="USE_GLES=1"
 
 make_target() {
@@ -54,3 +58,4 @@ makeinstall_target() {
   chmod 0644 ${UICONSDIR}/scalable/apps/mupen64plus.svg
 }
 
+fi

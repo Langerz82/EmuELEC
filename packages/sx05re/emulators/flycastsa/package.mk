@@ -44,4 +44,4 @@ makeinstall_target() {
 	chmod +x $INSTALL/usr/bin/set_flycast_joy.sh
 }
 
-#fi
+fi

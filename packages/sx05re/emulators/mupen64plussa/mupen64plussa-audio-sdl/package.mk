@@ -13,6 +13,10 @@ PKG_SHORTDESC="mupen64plus-audio-sdl"
 PKG_LONGDESC="Mupen64Plus Standalone Audio SDL"
 PKG_TOOLCHAIN="manual"
 
+if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
+	PKG_TOOLCHAIN=manual
+else
+
 PKG_MAKE_OPTS_TARGET+="USE_GLES=1"
 
 make_target() {
@@ -39,3 +43,4 @@ makeinstall_target() {
   chmod 0644 ${UPLUGINDIR}/mupen64plus-audio-sdl.so
 }
 
+fi

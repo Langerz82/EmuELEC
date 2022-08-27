@@ -13,6 +13,10 @@ PKG_SHORTDESC="mupen64plus-video-rice"
 PKG_LONGDESC="Mupen64Plus Standalone Rice Video Driver"
 PKG_TOOLCHAIN="manual"
 
+if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
+	PKG_TOOLCHAIN=manual
+else
+
 PKG_MAKE_OPTS_TARGET+="USE_GLES=1"
 
 make_target() {
@@ -43,3 +47,4 @@ makeinstall_target() {
   chmod 0644 ${USHAREDIR}/RiceVideoLinux.ini
 }
 
+fi

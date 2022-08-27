@@ -13,8 +13,11 @@ PKG_SHORTDESC="mupen64plus"
 PKG_LONGDESC="Mupen64Plus Standalone"
 PKG_TOOLCHAIN="manual"
 
-echo "OPENGLES=${OPENGLES}"
-if [ ${OPENGLES} = "" ]; then
+if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
+	PKG_TOOLCHAIN=manual
+else
+
+if [[ "${OPENGLES}" = "" ]]; then
 	export USE_GLES=0
 	PKG_DEPENDS_TARGET+=" ${OPENGL}"
   PKG_MAKE_OPTS_TARGET="USE_GLES=0"
@@ -57,3 +60,4 @@ makeinstall_target() {
   chmod 755 ${INSTALL}/usr/bin/set_mupen64_joy.sh
 }
 
+fi
