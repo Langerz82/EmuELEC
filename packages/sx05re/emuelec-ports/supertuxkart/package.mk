@@ -12,6 +12,10 @@ PKG_URL="$PKG_SITE/archive/$PKG_VERSION.tar.gz"
 PKG_DEPENDS_TARGET="toolchain SDL2 harfbuzz"
 PKG_LONGDESC="SuperTuxKart is a free kart racing game. It focuses on fun and not on realistic kart physics. Instructions can be found on the in-game help page."
 
+if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
+	PKG_TOOLCHAIN=manual
+else
+
 pre_configure_target() {
 PKG_CMAKE_OPTS_TARGET+=" -DBUILD_RECORDER=0 -DUSE_WIIUSE=OFF -DCHECK_ASSETS=off -DCMAKE_BUILD_TYPE=Release"
 }
@@ -21,3 +25,5 @@ mkdir -p $INSTALL/usr/bin
 cp $PKG_BUILD/.${TARGET_NAME}/bin/supertuxkart $INSTALL/usr/bin/
 cp $PKG_DIR/scripts/* $INSTALL/usr/bin
 }
+
+fi

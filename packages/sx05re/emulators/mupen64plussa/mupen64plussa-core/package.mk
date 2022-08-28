@@ -17,14 +17,16 @@ if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
 	PKG_TOOLCHAIN=manual
 else
 
-if [[ "${OPENGLES}" = "" ]]; then
+pre_configure_target() {
+	if [[ ! "${OPENGLES}" = "" ]]; then
+		export USE_GLES=1
+		PKG_MAKE_OPTS_TARGET="USE_GLES=1"
+	else
 	export USE_GLES=0
-	PKG_DEPENDS_TARGET+=" ${OPENGL}"
-  PKG_MAKE_OPTS_TARGET="USE_GLES=0"
-else
-	export USE_GLES=1
-  PKG_MAKE_OPTS_TARGET="USE_GLES=1"
-fi
+		PKG_DEPENDS_TARGET+=" ${OPENGL}"
+		PKG_MAKE_OPTS_TARGET="USE_GLES=0"
+	fi
+}
 
 make_target() {
   export HOST_CPU=aarch64	
