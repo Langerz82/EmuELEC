@@ -10,3 +10,7 @@ PKG_URL=""
 PKG_DEPENDS_TARGET="toolchain mupen64plussa-core mupen64plussa-ui-console mupen64plussa-audio-sdl mupen64plussa-input-sdl mupen64plussa-rsp-hle mupen64plussa-video-rice mupen64plussa-video-glide64mk2"
 PKG_SECTION="virtual"
 PKG_LONGDESC="Meta package for installing the different Mupen64Plus standalone modules"
+
+if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
+	PKG_DEPENDS_TARGET=""
+fi

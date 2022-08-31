@@ -13,9 +13,9 @@ PKG_SHORTDESC="mupen64plus-rsp-hle"
 PKG_LONGDESC="Mupen64Plus Standalone RSP HLE"
 PKG_TOOLCHAIN="manual"
 
-if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
-	PKG_TOOLCHAIN=manual
-else
+#if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
+#	PKG_TOOLCHAIN=manual
+#else
 
 PKG_MAKE_OPTS_TARGET+="USE_GLES=1"
 
@@ -43,5 +43,4 @@ makeinstall_target() {
   chmod 0644 ${UPLUGINDIR}/mupen64plus-rsp-hle.so
 }
 
-fi
-
+#fi

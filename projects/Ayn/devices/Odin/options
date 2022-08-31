@@ -40,7 +40,7 @@ BOOTLOADER="odin-bootloader"
 
   # OpenGL implementation to use (no / Mesa)
     OPENGL="mesa"
-    OPENGLES="no"
+    OPENGLES_SUPPORT="no"
 
     VULKAN=""
     if [ "${DISTRO}" = "EmuELEC" ]; then

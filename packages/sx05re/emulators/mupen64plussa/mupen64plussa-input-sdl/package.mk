@@ -13,9 +13,9 @@ PKG_SHORTDESC="mupen64plus-input-sdl"
 PKG_LONGDESC="Mupen64Plus Standalone Input SDL"
 PKG_TOOLCHAIN="manual"
 
-if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
-	PKG_TOOLCHAIN=manual
-else
+#if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
+#	PKG_TOOLCHAIN=manual
+#else
 
 PKG_MAKE_OPTS_TARGET+="USE_GLES=1"
 
@@ -47,4 +47,4 @@ makeinstall_target() {
   chmod 644 ${USHAREDIR}/InputAutoCfg.ini
 }
 
-fi
+#fi
