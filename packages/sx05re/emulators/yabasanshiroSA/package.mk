@@ -11,10 +11,6 @@ GET_HANDLER_SUPPORT="git"
 PKG_GIT_CLONE_BRANCH="pi4-1-9-0"
 PKG_BUILD_FLAGS="+speed"
 
-if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
-	PKG_TOOLCHAIN=manual
-else
-
 post_unpack() {
   # use host versions
   sed -i "s|COMMAND m68kmake|COMMAND ${PKG_BUILD}/m68kmake_host|" ${PKG_BUILD}/yabause/src/musashi/CMakeLists.txt
@@ -50,5 +46,3 @@ cp -a ${PKG_DIR}/scripts/* ${INSTALL}/usr/bin
 mkdir -p ${INSTALL}/usr/config/emuelec/configs/yabasanshiro
 cp ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/yabasanshiro
 } 
-
-fi

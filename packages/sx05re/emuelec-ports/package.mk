@@ -45,6 +45,10 @@ PKG_DEPENDS_TARGET+=" commander-genius \
 amlogicports=""
 hhports=" openjazz"
 
+if [ "${PROJECT}" == "Ayn" ] && [ "${DEVICE}" == "Odin" ]; then
+	PKG_DEPENDS_TARGET=$(echo $PKG_DEPENDS_TARGET | sed 's\supertuxkart\\g' | sed 's\supertux\\g')
+fi
+
 if [ "${DEVICE}" == "Amlogic"* ]; then
 	PKG_DEPENDS_TARGET+="${amlogicports}"
 fi

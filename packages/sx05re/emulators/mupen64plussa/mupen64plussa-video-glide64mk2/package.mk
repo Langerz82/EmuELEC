@@ -13,10 +13,6 @@ PKG_SHORTDESC="mupen64plus-video-glide64mk2"
 PKG_LONGDESC="Mupen64Plus Standalone Glide64 Video Driver"
 PKG_TOOLCHAIN="manual"
 
-#if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
-#	PKG_TOOLCHAIN=manual
-#else
-
 PKG_MAKE_OPTS_TARGET+="USE_GLES=1"
 
 make_target() {
@@ -46,5 +42,3 @@ makeinstall_target() {
   cp ${PKG_BUILD}/data/Glide64mk2.ini ${USHAREDIR}
   chmod 0644 ${USHAREDIR}/Glide64mk2.ini
 }
-
-#fi

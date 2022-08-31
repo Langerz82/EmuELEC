@@ -11,10 +11,6 @@ PKG_URL="$PKG_SITE.git"
 PKG_DEPENDS_TARGET="toolchain SDL2 boost"
 PKG_LONGDESC="Run and jump through multiple worlds, fighting off enemies by jumping on them, bumping them from below or tossing objects at them, grabbing power-ups and other stuff on the way."
 
-if [[ "${PROJECT}" = "Ayn" && "${DEVICE}" = "Odin" ]]; then
-	PKG_TOOLCHAIN=manual
-else
-
 pre_configure_target() {
 
 if [[ ! "${OPENGLES}" = "" ]]; then
@@ -35,5 +31,3 @@ cp $PKG_DIR/scripts/* $INSTALL/usr/bin
 mkdir -p $INSTALL/usr/config/emuelec/configs/supertux2
 cp $PKG_DIR/config/* $INSTALL/usr/config/emuelec/configs/supertux2
 }
-
-fi

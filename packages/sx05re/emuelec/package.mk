@@ -22,6 +22,10 @@ PKG_EMUS="$LIBRETRO_CORES advancemame PPSSPPSDL amiberry hatarisa openbor dosbox
 PKG_TOOLS="emuelec-tools"
 PKG_DEPENDS_TARGET+=" $PKG_TOOLS $PKG_EMUS $PKG_EXPERIMENTAL emuelec-ports"
 
+if [ "${PROJECT}" == "Ayn" ] && [ "${DEVICE}" == "Odin" ]; then
+	PKG_EXPERIMENTAL=$(echo $PKG_EXPERIMENTAL | sed 's\yabasanshiroSA\\g')
+fi
+
 # Removed cores for space and/or performance
 # PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET mame2015 fba4arm mba.mini.plus $LIBRETRO_EXTRA_CORES xow"
 
