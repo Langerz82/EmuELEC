@@ -4,8 +4,13 @@ PKG_ARCH="any"
 PKG_DEPENDS_TARGET="switch-u-boot:host linux cbfstool:host switch-u-boot:host"
 PKG_TOOLCHAIN="manual"
 
-
-if [ "${DISTRO}" = "Lakka" ]; then
+if [ "${DISTRO}" = "EmuELEC" ]; then
+	DISTRO_PATH="emuelec"
+	DISTRO_ICON="icon_lakka_hue.bmp"
+	HEKATE_SPLASH="splash_lakka.bmp"
+	ID="SWR-EMU"
+	UBOOT_FILE="u-boot-lakka.elf"
+elif [ "${DISTRO}" = "Lakka" ]; then
   DISTRO_PATH="lakka"
   DISTRO_ICON="icon_lakka_hue.bmp"
   HEKATE_SPLASH="splash_lakka.bmp"

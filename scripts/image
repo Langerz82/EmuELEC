@@ -371,7 +371,10 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
   )
 
   if [ "${BOOTLOADER}" = "switch-bootloader" -o "${BOOTLOADER}" = "odin-bootloader" ]; then
-    if [ "${DISTRO}" = "Lakka" ]; then
+#    echo "DISTRO=${DISTRO}"
+    if [ "${DISTRO}" = "EmuELEC" ]; then
+      DISTRO_PATH="emuelec"
+    elif [ "${DISTRO}" = "Lakka" ]; then
       DISTRO_PATH="lakka"
     elif [ "${DISTRO}" = "LibreELEC" ]; then
       DISTRO_PATH="libreelec"
@@ -391,6 +394,8 @@ if [ "${1}" = "release" -o "${1}" = "mkimage" -o "${1}" = "noobs" ]; then
     mkdir -p ${RELEASE_DIR}/${DISTRO_PATH}/storage
     cp ${TARGET_IMG}/${IMAGE_NAME}.system ${RELEASE_DIR}/${DISTRO_PATH}/SYSTEM
     cp ${TARGET_IMG}/${IMAGE_NAME}.kernel ${RELEASE_DIR}/${DISTRO_PATH}/KERNEL
+#    echo "RELEASE_DIR=${RELEASE_DIR}"
+#    echo "DISTRO_PATH=${DISTRO_PATH}"
     ( cd ${RELEASE_DIR};
       md5sum -t ${DISTRO_PATH}/SYSTEM > ${DISTRO_PATH}/SYSTEM.md5;
       md5sum -t ${DISTRO_PATH}/KERNEL > ${DISTRO_PATH}/KERNEL.md5;

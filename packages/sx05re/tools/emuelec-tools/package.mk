@@ -53,6 +53,10 @@ PKG_DEPENDS_TARGET+=" ffmpeg \
                       grep \
                       eemount"
 
+if [ "${PROJECT}" == "Ayn" ] && [ "${DEVICE}" == "Odin" ]; then
+	PKG_DEPENDS_TARGET=$(echo "$PKG_DEPENDS_TARGET" | sed -e 's/TvTextViewer//g')
+fi
+
 if [ "${PROJECT}" == "Amlogic-ce" ]; then
                       PKG_DEPENDS_TARGET+=" CoreELEC-Debug-Scripts"
 fi

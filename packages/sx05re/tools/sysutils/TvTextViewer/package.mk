@@ -11,12 +11,6 @@ PKG_DEPENDS_TARGET="toolchain SDL2"
 PKG_SHORTDESC="Full-screen text viewer tool with gamepad controls"
 PKG_TOOLCHAIN="make"
 
-if [[ (${PROJECT} = "Ayn" && ${DEVICE} = "Odin") ]]; then
-	PKG_TOOLCHAIN="manual"
-else
-
-
-
 pre_configure_target() {
 sed -i "s|\`sdl2-config|\`${SYSROOT_PREFIX}/usr/bin/sdl2-config|g" Makefile
 }
@@ -25,5 +19,3 @@ makeinstall_target(){
 mkdir -p $INSTALL/usr/bin
 cp text_viewer $INSTALL/usr/bin
 }
-
-fi

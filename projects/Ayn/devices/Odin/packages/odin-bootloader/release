@@ -1,5 +1,7 @@
 #!/bin/bash
-if [ "${DISTRO}" = "Lakka" ]; then
+if [ "${DISTRO}" = "EmuELEC" ]; then
+  DISTRO_FOLDER_NAME="emuelec"
+elif [ "${DISTRO}" = "Lakka" ]; then
   DISTRO_FOLDER_NAME="lakka"
 elif [ "${DISTRO}" = "LibreELEC" ]; then
   DISTRO_FOLDER_NAME="libreelec"
