@@ -23,7 +23,7 @@ PKG_TOOLS="emuelec-tools"
 PKG_DEPENDS_TARGET+=" $PKG_TOOLS $PKG_EMUS $PKG_EXPERIMENTAL emuelec-ports"
 
 if [ "${PROJECT}" == "Ayn" ] && [ "${DEVICE}" == "Odin" ]; then
-	PKG_EXPERIMENTAL=$(echo $PKG_EXPERIMENTAL | sed 's\yabasanshiroSA\\g')
+	PKG_DEPENDS_TARGET=$(echo $PKG_DEPENDS_TARGET | sed 's\yabasanshiroSA\\g')
 fi
 
 # Removed cores for space and/or performance

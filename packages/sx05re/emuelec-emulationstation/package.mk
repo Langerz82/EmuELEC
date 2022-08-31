@@ -105,6 +105,14 @@ makeinstall_target() {
 # Remove unused cores
 CORESFILE="${INSTALL}/usr/config/emulationstation/es_systems.cfg"
 
+if [ "${PROJECT}" == "Ayn" ] && [ "${DEVICE}" == "Odin" ]; then
+	remove_cores="yabasanshiroSA"
+	for discore in ${remove_cores}; do
+			sed -i "s|<core>$discore</core>||g" ${CORESFILE}
+			sed -i '/^[[:space:]]*$/d' ${CORESFILE}
+	done	
+fi
+
 if [ "${DEVICE}" != "Amlogic-ng" ]; then
     if [[ ${DEVICE} == "OdroidGoAdvance" || "$DEVICE" == "GameForce" ]]; then
         remove_cores="mesen-s quicknes mame2016 mesen"
