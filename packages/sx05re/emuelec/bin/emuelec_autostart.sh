@@ -116,17 +116,6 @@ show_splash.sh intro
 # Just make sure all the subshells are finished before starting front-end
 wait
 
-# Start Scanning for Bluetooth Controllers
-BTENABLED=$(get_ee_setting ee_bluetooth.enabled)
-
-if [[ "$BTENABLED" != "1" ]]; then
-systemctl stop bluetooth
-rm /storage/.cache/services/bluez.conf & 
-else
-systemctl restart bluetooth
-emuelec-bluetooth &
-fi
-
 # What to start at boot?
 DEFE=$(get_ee_setting ee_boot)
 
