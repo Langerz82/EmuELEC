@@ -280,13 +280,12 @@ wait
 # Start Scanning for Bluetooth Controllers
 BTENABLED=$(get_ee_setting ee_bluetooth.enabled)
 
-chown -R root:root /storage/.cache/bluetooth
 if [[ "$BTENABLED" != "1" ]]; then
   systemctl stop bluetooth
   rm /storage/.cache/services/bluez.conf & 
 else
   BT_RUN=$(ps ax | grep [b]luetoothd | wc -l)
-  [[ "$BT_RUN" == 0 ]] && systemctl start bluetooth
+  [[ "$BT_RUN" == 0 ]] && systemctl restart bluetooth
   emuelec-bluetooth &
 fi
 

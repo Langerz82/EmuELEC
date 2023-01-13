@@ -9,7 +9,6 @@
 function run_standby()
 {
   local delay=$1
-  delay=$(( delay * 60 ))
   sleep $delay && usb_reset &
   echo $! > /tmp/standby.pid
 }
