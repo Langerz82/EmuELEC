@@ -325,6 +325,9 @@ case ${PLATFORM} in
 elif [ ${LIBRETRO} == "yes" ]; then
 # We are running a Libretro emulator set all the settings that we chose on ES
 
+AUTOGP=$(get_ee_setting retroarch_auto_gamepad)
+[[ "${AUTOGP}" != "0" ]] && set_retroarch_joy.sh ${PLATFORM} ${CORE} "$(basename ${ROMNAME})"
+
 if [[ ${PLATFORM} == "ports" ]]; then
 	PORTCORE="${arguments##*-C}"  # read from -C onwards
 	EMU="${PORTCORE%% *}_libretro"  # until a space is found
@@ -456,6 +459,11 @@ else
    echo "Emulator log was dissabled" >> $EMUELECLOG
    eval ${RUNTHIS} > /dev/null 2>&1
    ret_error=$?
+fi
+
+# Restore joypads back to default RA record.
+if [ ${LIBRETRO} == "yes" ]; then
+  sed -i "s|joypad_autoconfig_dir =.*|joypad_autoconfig_dir = /tmp/joypads|" "/storage/.config/retroarch/retroarch.cfg"
 fi
 
 blank_buffer

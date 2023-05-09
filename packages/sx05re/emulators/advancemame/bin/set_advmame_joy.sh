@@ -11,6 +11,7 @@
 CONFIG_DIR="/storage/.advance"
 CONFIG="${CONFIG_DIR}/advmame.rc"
 ES_FEATURES="/storage/.config/emulationstation/es_features.cfg"
+EE_CFG="/emuelec/configs/emuelec.conf"
 
 source joy_common.sh "advmame"
 
@@ -209,11 +210,14 @@ set_pad(){
       esac
   done
 
-  declare -i i=1
+  declare -i i=0
   for bi in ${BTN_CFG}; do
-    local button="${GC_ORDER[$bi]}"
+    local button="${GC_ORDER[$i]}"
     [[ -z "$button" ]] && continue
-    button="${GC_ASSOC[$button]}"
+    #button="${GC_ASSOC[$button]}"
+
+    local vi="${GC_ORDER[$bi]}"
+    button="${GC_ASSOC[${vi}]}"
     
     local BTN_TYPE="${button:0:1}"
     if [[ "$BTN_TYPE" == "a" ]]; then
@@ -275,5 +279,13 @@ ADVMAME_REGEX="<emulator.*name\=\"AdvanceMame\" +features\=.*[ ,\"]joybtnremap[ 
 ADVMAME_REMAP=$(cat "${ES_FEATURES}" | grep -E "$ADVMAME_REGEX")
 [[ ! -z "$ADVMAME_REMAP" ]] && BTN_CFG=$(get_button_cfg)
 echo "BTN_CFG=$BTN_CFG"
+
+sed -i "s|AdvanceMame.joy_btn_order*||" ${EE_CFG}
+sed -i "s|AdvanceMame.joy_btns*||" ${EE_CFG}
+
+echo "AdvanceMame.joy_btn_order0=0 1 2 3 4 5 6 7" >> ${EE_CFG}
+echo "AdvanceMame.joy_btn_order1=2 1 3 0 4 5 6 7" >> ${EE_CFG}
+echo "AdvanceMame.joy_btn_order2=0 1 3 4 2 5 6 7" >> ${EE_CFG}
+echo "AdvanceMame.joy_btns=input a button,input b button,input x button,input y button,input l button,input r button,input l2 button,input r2 button" >> ${EE_CFG}
 
 jc_get_players
