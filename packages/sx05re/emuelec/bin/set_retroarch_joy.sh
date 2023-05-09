@@ -240,15 +240,6 @@ set_pad(){
 BTN_CFG=$(get_button_cfg)
 echo "BTN_CFG=$BTN_CFG"
 
-
 sed -i "s|joypad_autoconfig_dir =.*|joypad_autoconfig_dir = /tmp/joypads_ra|" "/storage/.config/retroarch/retroarch.cfg"
-
-sed -i "s|libretro.joy_btn_order*||" ${EE_CFG}
-sed -i "s|libretro.joy_btns*||" ${EE_CFG}
-
-echo "libretro.joy_btn_order0=0 1 2 3 4 5 6 7" >> ${EE_CFG}
-echo "libretro.joy_btn_order1=2 1 3 0 4 5 6 7" >> ${EE_CFG}
-echo "libretro.joy_btn_order2=0 1 3 4 2 5 6 7" >> ${EE_CFG}
-echo "libretro.joy_btns=input a button,input b button,input x button,input y button,input l button,input r button,input l2 button,input r2 button" >> ${EE_CFG}
 
 jc_get_players

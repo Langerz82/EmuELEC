@@ -280,12 +280,4 @@ ADVMAME_REMAP=$(cat "${ES_FEATURES}" | grep -E "$ADVMAME_REGEX")
 [[ ! -z "$ADVMAME_REMAP" ]] && BTN_CFG=$(get_button_cfg)
 echo "BTN_CFG=$BTN_CFG"
 
-sed -i "s|AdvanceMame.joy_btn_order*||" ${EE_CFG}
-sed -i "s|AdvanceMame.joy_btns*||" ${EE_CFG}
-
-echo "AdvanceMame.joy_btn_order0=0 1 2 3 4 5 6 7" >> ${EE_CFG}
-echo "AdvanceMame.joy_btn_order1=2 1 3 0 4 5 6 7" >> ${EE_CFG}
-echo "AdvanceMame.joy_btn_order2=0 1 3 4 2 5 6 7" >> ${EE_CFG}
-echo "AdvanceMame.joy_btns=input a button,input b button,input x button,input y button,input l button,input r button,input l2 button,input r2 button" >> ${EE_CFG}
-
 jc_get_players
