@@ -69,7 +69,7 @@ AUTOGP=$(get_ee_setting advmame_auto_gamepad)
 # Hack - Set the crash stack size to 0 to prevent program doing a large dump of poo.
 CRASH_STACK_SIZE=$( ulimit -c )
 
-[[ "${AUTOGP}" != "0" ]] && set_advmame_joy.sh "$ROMNAME"
+[[ "${AUTOGP}" != "0" ]] && set_advmame_joy.sh "${PLATFORM}" "${EMULATOR}" "$ROMNAME"
 
 # Hack - Revert crash stack size so it can poo nicely.
 ulimit -c $CRASH_STACK_SIZE

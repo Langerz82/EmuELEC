@@ -15,7 +15,7 @@ EE_CFG="/emuelec/configs/emuelec.conf"
 source joy_common.sh "retroarch"
 
 PLATFORM=$1
-CORE=$2
+EMULATOR=$2
 ROMNAME=$3
 
 BTN_CFG="0 1 2 3 4 5 6 7"
@@ -112,11 +112,11 @@ declare GC_ORDER=(
 declare -A GC_NAMES=()
 
 get_button_cfg() {
-	local BTN_INDEX=$(get_ee_setting "joy_btn_cfg" "${CORE}" "${ROMNAME}")
+	local BTN_INDEX=$(get_ee_setting "joy_btn_cfg" "${PLATFORM}" "${ROMNAME}")
   [[ -z $BTN_INDEX ]] && BTN_INDEX=$(get_ee_setting "${PLATFORM}.joy_btn_cfg")
 
   if [[ ! -z $BTN_INDEX ]] && [[ $BTN_INDEX -gt 0 ]]; then
-		local BTN_SETTING="${PLATFORM}.joy_btn_order$BTN_INDEX"
+		local BTN_SETTING="${EMULATOR}.joy_btn_order$BTN_INDEX"
     local BTN_CFG_TMP="$(get_ee_setting $BTN_SETTING)"
 		[[ ! -z $BTN_CFG_TMP ]] && BTN_CFG="${BTN_CFG_TMP}"
 	fi

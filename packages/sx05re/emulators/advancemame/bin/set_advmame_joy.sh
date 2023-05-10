@@ -56,14 +56,14 @@ declare -A ADVMAME_VALUES=(
 )
 
 declare GC_ORDER=(
-  "a"
-  "b"
   "x"
-  "y"
-  "rightshoulder"
   "leftshoulder"
-  "righttrigger"
+  "b"
+  "y"
+  "a"
+  "rightshoulder"
   "lefttrigger"
+  "righttrigger"
 )
 
 declare -A GC_NAMES=()
@@ -210,15 +210,11 @@ set_pad(){
       esac
   done
 
-  declare -i i=0
+  declare -i i=1
   for bi in ${BTN_CFG}; do
-    local button="${GC_ORDER[$i]}"
-    [[ -z "$button" ]] && continue
-    #button="${GC_ASSOC[$button]}"
+    local vi="${GC_ORDER[${bi}]}"
+    local button="${GC_ASSOC[${vi}]}"
 
-    local vi="${GC_ORDER[$bi]}"
-    button="${GC_ASSOC[${vi}]}"
-    
     local BTN_TYPE="${button:0:1}"
     if [[ "$BTN_TYPE" == "a" ]]; then
       local STR="input_map[p${1}_button${i}]"

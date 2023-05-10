@@ -326,7 +326,7 @@ elif [ ${LIBRETRO} == "yes" ]; then
 # We are running a Libretro emulator set all the settings that we chose on ES
 
 AUTOGP=$(get_ee_setting retroarch_auto_gamepad)
-[[ "${AUTOGP}" != "0" ]] && set_retroarch_joy.sh ${PLATFORM} ${CORE} "$(basename ${ROMNAME})"
+[[ "${AUTOGP}" != "0" ]] && set_retroarch_joy.sh "${PLATFORM}" "${EMULATOR}" "$(basename ${ROMNAME})"
 
 if [[ ${PLATFORM} == "ports" ]]; then
 	PORTCORE="${arguments##*-C}"  # read from -C onwards
