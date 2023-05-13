@@ -23,18 +23,23 @@ fi
 #case "$@" in
 #EXTRAOPTS=
 
-if [ "${2}" == "NCD" ]; then
+if [ "${3}" == "NCD" ]; then
     echo . > /dev/null
     #EXTRAOPTS=CDOPTS?
 fi
 
-ROM=$(basename -- "${1}")
-ROM="${ROM%.*}"
-DIR=$(dirname ${1})
+PLATFORM="${1}"
+ROMFILE=$(basename -- "${2}")
+ROM="${ROMFILE%.*}"
+DIR=$(dirname ${2})
 
 sed -i "s|szAppRomPaths\[0\].*|szAppRomPaths\[0\] ${DIR}/|" /emuelec/configs/fbneo/config/fbneo.ini
 
 export LIBGL_NOBANNER=1
 export LIBGL_SILENTSTUB=1
+
+AUTOGP=$(get_ee_setting fbneosa_auto_gamepad)
+[[ "${AUTOGP}" != "0" ]] && set_fbneo_joy.sh "${PLATFORM}" "${ROMFILE}"
+
 [[ "${EE_DEVICE}" == "Amlogic-ng" ]] && fbfix
 fbneo -joy -fullscreen "${ROM}" ${EXTRAOPTS} >> /emuelec/logs/emuelec.log 2>&1
