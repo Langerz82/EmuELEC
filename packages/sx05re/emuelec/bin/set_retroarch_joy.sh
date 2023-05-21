@@ -23,60 +23,60 @@ BTN_CFG="0 1 2 3 4 5 6 7"
 
 declare -A RA_VALUES=(
   ["b0"]="0"
-  ["b1"]="1"
-  ["b2"]="2"
-  ["b3"]="3"
-  ["b4"]="4"
-  ["b5"]="5"
-  ["b6"]="6"
-  ["b7"]="7"
-  ["b8"]="8"
-  ["b9"]="9"
-  ["b10"]="10"
-  ["b11"]="11"
-  ["b12"]="12"
-  ["b13"]="13"
-  ["b14"]="14"
-  ["b15"]="15"
-  ["b16"]="16"
-  ["b17"]="17"
-  ["h0.1"]="h0up"
-  ["h0.4"]="h0down"
-  ["h0.8"]="h0left"
-  ["h0.2"]="h0right"
+  ["b1"]="8"
+  ["b2"]="1"
+  ["b3"]="9"
+  ["b4"]="10"
+  ["b5"]="11"
+  ["b6"]="2"
+  ["b7"]="3"
+  #["b8"]="1"
+  ["b9"]="2"
+  ["b10"]="3"
+  ["b11"]="12"
+  ["b12"]="13"
+  ["b13"]="4"
+  ["b14"]="5"
+  ["b15"]="6"
+  ["b16"]="7"
+  ["h0.1"]="4"
+  ["h0.4"]="5"
+  ["h0.8"]="6"
+  ["h0.2"]="7"
   ["a0,1"]="-0"
   ["a0,2"]="+0"
   ["a1,1"]="-1"
   ["a1,2"]="+1"
-  ["a2"]="+2"
+  ["a2"]="12"
   ["a2,1"]="-2"
   ["a2,2"]="+2"
   ["a3,1"]="-3"
   ["a3,2"]="+3"
   ["a4,1"]="-4"
   ["a4,2"]="+4"
-  ["a5"]="+5"
+  ["a5"]="13"
   ["a5,1"]="-5"
   ["a5,2"]="+5"
 )
 
 declare -A RA_BUTTONS=(
-  [dpleft]="input_left_btn"
-  [dpright]="input_right_btn"
-  [dpup]="input_up_btn"
-  [dpdown]="input_down_btn"
-  [x]="input_x_btn"
-  [y]="input_y_btn"
-  [a]="input_a_btn"
-  [b]="input_b_btn"
-  [lefttrigger]="input_l2_axis"
-  [righttrigger]="input_r2_axis"
-  [back]="input_select_btn"
-  [start]="input_start_btn"
-  [leftshoulder]="input_l_btn"
-  [rightshoulder]="input_r_btn"
-  [leftthumb]="input_l3_btn"
-  [rightthumb]="input_r3_btn"
+  [dpleft]="input_btn_left"
+  [dpright]="input_btn_right"
+  [dpup]="input_btn_up"
+  [dpdown]="input_btn_down"
+  [a]="input_btn_a"
+  [b]="input_btn_b"
+  [x]="input_btn_x"
+  [y]="input_btn_y"
+  
+  [lefttrigger]="input_btn_l2"
+  [righttrigger]="input_btn_r2"
+  [back]="input_btn_select"
+  [start]="input_btn_start"
+  [leftshoulder]="input_btn_l"
+  [rightshoulder]="input_btn_r"
+  [leftthumb]="input_btn_l3"
+  [rightthumb]="input_btn_r3"
 
   [leftx,1]="input_l_x_minus_axis"
   [leftx,2]="input_l_x_plus_axis"
@@ -117,6 +117,8 @@ declare -A RA_MENU=(
 
 declare -A GC_NAMES=()
 
+
+
 get_button_cfg() {
 	local BTN_INDEX=$(get_ee_setting "joy_btn_cfg" "${PLATFORM}" "${ROMNAME}")
   [[ -z $BTN_INDEX ]] && BTN_INDEX=$(get_ee_setting "${PLATFORM}.joy_btn_cfg")
@@ -148,13 +150,13 @@ set_pad(){
   [[ -z "$JOY_NAME" ]] && JOY_NAME=$(echo $GC_CONFIG | cut -d',' -f2)
   [[ -z "$JOY_NAME" ]] && return
 
-  # local GAMEPAD="$( cat "/tmp/JOYPAD_NAMES/JOYPAD${1}.txt" | cut -d'"' -f 2 )"
+  #local GAMEPAD="$( cat "/tmp/JOYPAD_NAMES/JOYPAD${1}.txt" | cut -d'"' -f 2 )"
 
   CONFIG="${CONFIG_DIR}/player${1}.cfg"
   CONFIG_M="${CONFIG_DIR}/player_menu.cfg"
 
   rm "${CONFIG}"
-  rm "${CONFIG_M}"
+  # rm "${CONFIG_M}"
 
   #OLD_CONFIG="/tmp/joypads/${GAMEPAD}.cfg"
   #VENDOR=0
@@ -163,7 +165,7 @@ set_pad(){
   #  VENDOR=$( cat "${OLD_CONFIG}" | grep "input_vendor_id" | cut -d'"' -f 2 )
   #  PRODUCT=$( cat "${OLD_CONFIG}" | grep "input_product_id" | cut -d'"' -f 2 )
   #fi
-  #echo "input_player${1}_joypad_index = ${2:2}" >> "${CONFIG}"
+  echo "input_joypad_index = \"${1}\"" >> "${CONFIG}"
   #echo "input_device = \"${GAMEPAD}\"" >> "${CONFIG}"
   #echo "input_driver = \"udev\"" >> "${CONFIG}"
   #echo "input_vendor_id = \"${VENDOR}\"" >> "${CONFIG}"
@@ -199,8 +201,8 @@ set_pad(){
           echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
         fi
 
-        FIELD="${RA_MENU[${GC_INDEX}]}"
-        [[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
+        #FIELD="${RA_MENU[${GC_INDEX}]}"
+        #[[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
         ;;
       leftx|lefty|rightx|righty)
         if [[ "$BTN_TYPE" == "a" ]]; then
@@ -212,8 +214,8 @@ set_pad(){
           VAL="${RA_VALUES[${TVAL},2]}"            
           echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
           
-          FIELD="${RA_MENU[${GC_INDEX}]}"
-          [[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
+          #FIELD="${RA_MENU[${GC_INDEX}]}"
+          #[[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
         fi
     esac
   done
@@ -232,35 +234,40 @@ set_pad(){
     
     if [[ "$BTN_TYPE" == "a" ]]; then
       echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-      [[ ! -z ${FIELD2} ]] && echo "${FIELD2} = \"${VAL}\"" >> "${CONFIG_M}"
+      #[[ ! -z ${FIELD2} ]] && echo "${FIELD2} = \"${VAL}\"" >> "${CONFIG_M}"
     elif [[ "$BTN_TYPE" == "b" ]]; then
       echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-      [[ ! -z ${FIELD2} ]] && echo "${FIELD2} = \"${VAL}\"" >> "${CONFIG_M}"
+      #[[ ! -z ${FIELD2} ]] && echo "${FIELD2} = \"${VAL}\"" >> "${CONFIG_M}"
     elif [[ "$BTN_TYPE" == "h" ]]; then
       echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-      [[ ! -z ${FIELD2} ]] && echo "${FIELD2} = \"${VAL}\"" >> "${CONFIG_M}"
+      #[[ ! -z ${FIELD2} ]] && echo "${FIELD2} = \"${VAL}\"" >> "${CONFIG_M}"
     fi
     (( i++ ))
   done
 
   sed -i "s|input_*|input_player${1}_|" "${CONFIG}"
-  
-  REMAP_FILE="/storage/.config/retroarch/config/remappings/${CORE}/${CORE}.rmp"
-  sed -i "/input_player${1}_.*_btn.*/d" "${REMAP_FILE}"
-  sed -i "/input_player${1}_.*_axis.*/d" "${REMAP_FILE}"
+
+  [[ ! -z "${GC_CORES[${CORE}]}" ]] && CORE="${GC_CORES[${CORE}]}"
+  mkdir -p "/storage/.config/retroarch/config/remappings/${CORE}"
+  local REMAP_FILE="/storage/.config/retroarch/config/remappings/${CORE}/${CORE}.rmp"
+  if [[ -f "${REMAP_FILE}" ]]; then
+    sed -i "/input_player${1}_.*btn.*/d" "${REMAP_FILE}"
+    sed -i "/input_player${1}_.*axis.*/d" "${REMAP_FILE}"
+  fi
 
   cat "${CONFIG}" >> "${REMAP_FILE}"
 
-  if [[ "${1}" == "1" ]]; then
-    for menu_field in ${RA_MENU[*]}; do
-      sed -i "/${menu_field}.*/d" "${REMAP_FILE}"
-    done
-    cat "${CONFIG_M}" >> "${REMAP_FILE}"
-  fi
+  # if [[ "${1}" == "1" ]]; then
+  #  for menu_field in ${RA_MENU[*]}; do
+  #    sed -i "/${menu_field}.*/d" "${REMAP_FILE}"
+  #  done
+    #cat "${CONFIG_M}" >> "${REMAP_FILE}"
+  #fi
 }
 
 BTN_CFG=$(get_button_cfg)
 echo "BTN_CFG=$BTN_CFG"
 
-jc_get_players
+AUTOGP=$(get_ee_setting retroarch_auto_gamepad)
+[[ "${AUTOGP}" == "1" ]] && jc_get_players
 

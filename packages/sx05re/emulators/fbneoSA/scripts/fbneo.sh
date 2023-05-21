@@ -39,7 +39,7 @@ export LIBGL_NOBANNER=1
 export LIBGL_SILENTSTUB=1
 
 AUTOGP=$(get_ee_setting fbneosa_auto_gamepad)
-[[ "${AUTOGP}" != "0" ]] && set_fbneo_joy.sh "${PLATFORM}" "${ROMFILE}"
+[[ "${AUTOGP}" == "1" ]] && set_fbneo_joy.sh "${PLATFORM}" "${ROMFILE}"
 
 [[ "${EE_DEVICE}" == "Amlogic-ng" ]] && fbfix
 fbneo -joy -fullscreen "${ROM}" ${EXTRAOPTS} >> /emuelec/logs/emuelec.log 2>&1
