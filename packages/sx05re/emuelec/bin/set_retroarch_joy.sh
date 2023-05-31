@@ -21,7 +21,29 @@ mkdir -p ""${CONFIG_DIR}""
 
 BTN_CFG="0 1 2 3 4 5 6 7"
 
+PREFIX_VAL=""
+[[ "$EE_DEVICE" == "OdroidGoAdvance" ]] && PREFIX_VAL="oga_"
+
 declare -A RA_VALUES=(
+  ["oga_b0"]="0" # a
+  ["oga_b1"]="8" # b
+  ["oga_b2"]="9" # x
+  ["oga_b3"]="1" # y
+  ["oga_b4"]="10" # l1
+  ["oga_b5"]="11" # r1
+  ["oga_b6"]="12" # l2
+  ["oga_b7"]="13" # r2
+  ["oga_b8"]="4"  # dpup
+  ["oga_b9"]="5" # dpdown
+  ["oga_b10"]="6" # dpleft
+  ["oga_b11"]="7" # dpright
+  ["oga_b12"]="2" # select
+  ["oga_b13"]="3" # start
+  ["oga_b14"]="14" # l3
+  #["oga_b15"]="6" # unknown
+  #["oga_b16"]="7" # guide
+  ["oga_b17"]="15" # r3
+
   ["b0"]="0"
   ["b1"]="8"
   ["b2"]="1"
@@ -185,39 +207,39 @@ set_pad(){
     local TVAL=$(echo $REC | cut -d ":" -f 2)
     GC_ASSOC["$GC_INDEX"]=$TVAL
 
-    [[ " ${GC_ORDER[*]} " == *" ${GC_INDEX} "* ]] && continue
-    local BUTTON_VAL=${TVAL:1}
-    local BTN_TYPE=${TVAL:0:1}
+#    [[ " ${GC_ORDER[*]} " == *" ${GC_INDEX} "* ]] && continue
+#    local BUTTON_VAL=${TVAL:1}
+#    local BTN_TYPE=${TVAL:0:1}
 
-    local FIELD="${RA_BUTTONS[${GC_INDEX}]}"
-    local VAL="${RA_VALUES[${TVAL}]}"
+#    local FIELD="${RA_BUTTONS[${GC_INDEX}]}"
+#    local VAL="${RA_VALUES[${PREFIX_VAL}${TVAL}]}"
 
     # Create ordinary buttons and analog dirs.
-    case $GC_INDEX in
-      dpup|dpdown|dpleft|dpright|back|start)
-        if [[ "$BTN_TYPE" == "b" ]]; then
-          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-        elif [[ "$BTN_TYPE" == "h" ]]; then
-          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-        fi
-
+#    case $GC_INDEX in
+#      dpup|dpdown|dpleft|dpright|back|start)
+#        if [[ "$BTN_TYPE" == "b" ]]; then
+#          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
+#        elif [[ "$BTN_TYPE" == "h" ]]; then
+#          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
+#        fi
+#
         #FIELD="${RA_MENU[${GC_INDEX}]}"
         #[[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
-        ;;
-      leftx|lefty|rightx|righty)
-        if [[ "$BTN_TYPE" == "a" ]]; then
-          FIELD="${RA_BUTTONS[${GC_INDEX},1]}"
-          VAL="${RA_VALUES[${TVAL},1]}"
-          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-
-          FIELD="${RA_BUTTONS[${GC_INDEX},2]}"
-          VAL="${RA_VALUES[${TVAL},2]}"            
-          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-          
-          #FIELD="${RA_MENU[${GC_INDEX}]}"
-          #[[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
-        fi
-    esac
+#        ;;
+#      leftx|lefty|rightx|righty)
+#        if [[ "$BTN_TYPE" == "a" ]]; then
+#          FIELD="${RA_BUTTONS[${GC_INDEX},1]}"
+#          VAL="${RA_VALUES[${TVAL},1]}"
+#          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
+#
+#          FIELD="${RA_BUTTONS[${GC_INDEX},2]}"
+#          VAL="${RA_VALUES[${TVAL},2]}"            
+#          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
+#          
+#          #FIELD="${RA_MENU[${GC_INDEX}]}"
+#          #[[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
+#        fi
+#    esac
   done
 
   declare -i i=0
@@ -230,7 +252,7 @@ set_pad(){
     local vi="${GC_ORDER[$bi]}"
     button="${GC_ASSOC[${vi}]}"
     local BTN_TYPE="${button:0:1}"
-    local VAL="${RA_VALUES[${button}]}"
+    local VAL="${RA_VALUES[${PREFIX_VAL}${button}]}"
     
     if [[ "$BTN_TYPE" == "a" ]]; then
       echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"

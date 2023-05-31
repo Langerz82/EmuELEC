@@ -460,11 +460,6 @@ else
    ret_error=$?
 fi
 
-# Restore joypads back to default RA record.
-if [ ${LIBRETRO} == "yes" ]; then
-  sed -i "s|joypad_autoconfig_dir =.*|joypad_autoconfig_dir = /tmp/joypads|" "/storage/.config/retroarch/retroarch.cfg"
-fi
-
 blank_buffer
 
 [[ "$CLOUD_SYNC" == "1" ]] && ra_rclone.sh set "${PLATFORM}" "${ROMNAME}" &
