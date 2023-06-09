@@ -186,9 +186,9 @@ def is_bluetooth_running():
 
 
 LIFETIME = 60
-SCAN_TIME = 20
-CONNECT_ATTEMPTS = 3
-SCAN_INTERVAL = 20
+SCAN_TIME = 5
+CONNECT_ATTEMPTS = 5
+SCAN_INTERVAL = 15
 MAX_SCAN_TIME = 60
 
 if __name__ == "__main__":
@@ -237,15 +237,41 @@ if __name__ == "__main__":
         time.sleep(3)
 
         # stop if a game is running
-        if is_in_game():
+        if is_in_game() or not scan_active:
             continue
 
         for i in range(CONNECT_ATTEMPTS):
+            # stop if a game is running
+            if is_in_game():
+                continue
+
             print("Starting connect attempt {}, please wait...".format(i + 1))
             devices = bt.devices()
             for dev in devices:
                 if True:
                     print(dev)
+                if (
+                    not dev.connected and dev.trusted and dev.paired
+                    and "input-" in dev.icon
+                ):
+                    print(
+                        "pairing and connecting device {}, mac: {}, icon: {}, paired: {}".format(
+                            dev.name, dev.mac, dev.icon, dev.paired
+                        )
+                    )
+
+#                    res = True
+#                    if not dev.paired:
+#                        res = bt.pair(dev)
+
+#                   if res and bt.connect(dev):
+                    if bt.connect(dev):
+                        print("successfully connected {}".format(dev.name))
+                    else:
+                        bt.untrust(dev)
+                        bt.forget(dev)
+                        dev.trust = False
+                        dev.paired = False
                 if (
                     not dev.connected  # exclude already connected devices
                     and (dev.rssi != 0)
@@ -288,22 +314,6 @@ if __name__ == "__main__":
                     if bt.trust(dev):
                         bt.pair(dev)
                         print("successfully trusted {} now connect cable.".format(dev.name))
-                elif (
-                    not dev.connected and dev.trusted
-                    and "input-" in dev.icon
-                ):
-                    print(
-                        "pairing and connecting device {}, mac: {}, icon: {}, paired: {}".format(
-                            dev.name, dev.mac, dev.icon, dev.paired
-                        )
-                    )
-
-                    res = True
-                    if not dev.paired:
-                        res = bt.pair(dev)
-
-                    if res and bt.connect(dev):
-                        print("successfully paired {}".format(dev.name))
 
             time.sleep(SCAN_TIME // CONNECT_ATTEMPTS)
         print("Stopped scan {}.".format(iteration))
