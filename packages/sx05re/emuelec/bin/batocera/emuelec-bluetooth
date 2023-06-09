@@ -4,6 +4,8 @@ from subprocess import Popen, PIPE
 from dataclasses import dataclass
 import time
 import sys
+import os
+import re
 
 DEBUG = False
 
@@ -25,8 +27,9 @@ class BluetoothDevice:
     rssi: int
 
 
-class BluetoothCTL:
-    def _execute(self, cmd: list[str]) -> list[str]:
+class ShellIO:
+    @staticmethod
+    def execute(cmd: list[str]) -> list[str]:
         if DEBUG:
             print("> " + " ".join(x for x in cmd))
         out: list[str] = []
@@ -37,18 +40,22 @@ class BluetoothCTL:
                     print(line)
         return out
 
-    def _execute_lookup(self, cmd: list[str], match: str) -> str:
-        out = self._execute(cmd)
+    @staticmethod
+    def execute_lookup(cmd: list[str], match: str) -> str:
+        out = ShellIO.execute(cmd)
         for o in out:
             if match in o:
                 return o
         return ""
 
-    def _execute_async(self, cmd: list[str]):
+    @staticmethod
+    def execute_async(cmd: list[str]):
         Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True)
 
+
+class BluetoothCTL:
     def _parse_device_info(self, mac: str):
-        info = self._execute(["bluetoothctl", "info", mac])
+        info = ShellIO.execute(["bluetoothctl", "info", mac])
         dev = BluetoothDevice(
             mac=mac,
             name="",
@@ -64,11 +71,9 @@ class BluetoothCTL:
             legacy_pairing=False,
             rssi=0,
         )
-        if DEBUG:
-            print(info)
         for i in info:
             if "Name:" in i:
-                dev.name = i.split(":")[1].strip() # bug - default strip make name and alias blank.
+                dev.name = i.split(":")[1].strip()
             if "Alias:" in i:
                 dev.alias = i.split(":")[1].strip()
             if "Class:" in i:
@@ -90,140 +95,219 @@ class BluetoothCTL:
             if "LegacyPairing:" in i:
                 dev.legacy_pairing = i.split(":")[1].strip() == "yes"
             if "RSSI:" in i:
-                dev.rssi = int(i.split(":")[1].strip()) # bug - my PS3 Gamepad does not have this value.
+                dev.rssi = int(i.split(":")[1].strip())
         return dev
 
     @property
     def power(self) -> bool:
-        return "yes" in self._execute_lookup(["bluetoothctl", "show"], "Pairable")
+        return "yes" in ShellIO.execute_lookup(["bluetoothctl", "show"], "Pairable")
 
     @property
     def discoverable(self) -> bool:
-        return "yes" in self._execute_lookup(["bluetoothctl", "show"], "Discoverable")
+        return "yes" in ShellIO.execute_lookup(["bluetoothctl", "show"], "Discoverable")
 
     @property
     def pairable(self) -> bool:
-        return "yes" in self._execute_lookup(["bluetoothctl", "show"], "Pairable")
+        return "yes" in ShellIO.execute_lookup(["bluetoothctl", "show"], "Pairable")
 
     @power.setter
     def power(self, value):
-        self._execute(["bluetoothctl", "power", "on" if value else "off"])
+        ShellIO.execute(["bluetoothctl", "power", "on" if value else "off"])
 
     @discoverable.setter
     def discoverable(self, value):
-        self._execute(["bluetoothctl", "discoverable", "on" if value else "off"])
+        ShellIO.execute(["bluetoothctl", "discoverable", "on" if value else "off"])
 
     @pairable.setter
     def pairable(self, value):
-        self._execute(["bluetoothctl", "pairable", "on" if value else "off"])
+        ShellIO.execute(["bluetoothctl", "pairable", "on" if value else "off"])
 
     @pairable.setter
     def agent(self, value):
-        self._execute(["bluetoothctl", "agent", "on" if value else "off"])
+        ShellIO.execute(["bluetoothctl", "agent", "on" if value else "off"])
 
     def scan(self, timeout=10):
-        self._execute(["bluetoothctl", "--timeout", str(timeout), "scan", "on"])
+        ShellIO.execute(["bluetoothctl", "--timeout", str(timeout), "scan", "on"])
 
     def scan_async(self, timeout=10):
-        self._execute_async(["bluetoothctl", "--timeout", str(timeout), "scan", "on"])
+        if timeout > 0:
+            ShellIO.execute_async(
+                ["bluetoothctl", "--timeout", str(timeout), "scan", "on"]
+            )
+        else:
+            ShellIO.execute_async(["bluetoothctl", "scan", "on"])
+
+    def scan_stop(self):
+        ShellIO.execute_async(["pkill", "-f", "bluetoothctl scan on"])
 
     def devices(self) -> list[BluetoothDevice]:
-        devs = self._execute(["bluetoothctl", "devices"])
+        devs = ShellIO.execute(["bluetoothctl", "devices"])
         return [self._parse_device_info(dev.split()[1]) for dev in devs]
 
     def trust(self, dev: BluetoothDevice) -> bool:
-        return "succeeded" in self._execute_lookup(
+        return "succeeded" in ShellIO.execute_lookup(
             ["bluetoothctl", "trust", dev.mac], "trust succeeded"
         )
 
     def untrust(self, dev: BluetoothDevice) -> bool:
-        return "succeeded" in self._execute_lookup(
+        return "succeeded" in ShellIO.execute_lookup(
             ["bluetoothctl", "untrust", dev.mac], "untrust succeeded"
         )
 
     def pair(self, dev: BluetoothDevice) -> bool:
-        return "successful" in self._execute_lookup(
+        return "successful" in ShellIO.execute_lookup(
             ["bluetoothctl", "pair", dev.mac], "Pairing successful"
         )
 
     def connect(self, dev: BluetoothDevice) -> bool:
-        return "successful" in self._execute_lookup(
+        return "successful" in ShellIO.execute_lookup(
             ["bluetoothctl", "connect", dev.mac], "Connection successful"
         )
 
     def forget(self, dev: BluetoothDevice) -> bool:
-        return "removed" in self._execute_lookup(
+        return "removed" in ShellIO.execute_lookup(
             ["bluetoothctl", "remove", dev.mac], "Device has been removed"
         )
 
 
-SCAN_TIME = 60
-SCAN_INTERVAL = 15
+# returns true if a game is runnign via the emuelecRunEmu script
+def is_in_game():
+    return ShellIO.execute_lookup(["ps", "-ef"], "emuelecRunEmu.sh")
+
+
+# returns true if another process (not current) is running infinite scan
+def is_bluetooth_running():
+    out = ShellIO.execute(["ps", "-ef"])
+    for o in out:
+        if re.search(r"(emuelec-bluetooth) \d+ -1", o) is not None:
+            return False if str(os.getpid()) in o else True
+    return False
+
+
+
+LIFETIME = 60
+SCAN_TIME = 20
+CONNECT_ATTEMPTS = 3
+SCAN_INTERVAL = 20
+MAX_SCAN_TIME = 60
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        SCAN_INTERVAL = int(sys.argv[1]);
-    if len(sys.argv) == 3:
-        SCAN_INTERVAL = int(sys.argv[1]);
-        SCAN_TIME = int(sys.argv[2]);
+    if len(sys.argv) > 1:
+        LIFETIME = int(sys.argv[1])
+    if len(sys.argv) > 2:
+        SCAN_TIME = int(sys.argv[2])
+    if len(sys.argv) > 3:
+        CONNECT_ATTEMPTS = int(sys.argv[3])
+    if len(sys.argv) > 4:
+        SCAN_INTERVAL = int(sys.argv[4])
 
     bt = BluetoothCTL()
+
+    if is_bluetooth_running():
+        exit()
+
     bt.power = True
     bt.agent = True
     bt.discoverable = True
     bt.pairable = True
 
-    print(
-        "Scanning available devices for {} seconds, with interval {}, please wait...".format(
-            SCAN_TIME, SCAN_INTERVAL
-        )
-    )
-    bt.scan_async(timeout=SCAN_TIME)
+    start_time = time.time()
+    scan_active = False
+    iteration = 1
 
-    for i in range(SCAN_TIME // SCAN_INTERVAL):
-        time.sleep(SCAN_INTERVAL)
-        print("Starting scan {}, please wait...".format(i + 1))
-        devices = bt.devices()
-        for dev in devices:
-            print(
-                "detected device {}, mac: {}, icon: {}, paired: {}".format(
-                    dev.name, dev.mac, dev.icon, dev.paired
-                )
+    while (time.time() - start_time < LIFETIME):
+        print(
+            "Scanning available devices for up to {} seconds, with interval {}, please wait...".format(
+                SCAN_TIME, SCAN_INTERVAL
             )
-            if (
-                not dev.connected
-                and dev.rssi != 0
-                and "input-" in dev.icon
-                and len(dev.name) > 0
-            ):
-                print(
-                    "found device {}, mac: {}, icon: {}, paired: {}".format(
-                        dev.name, dev.mac, dev.icon, dev.paired
+        )
+
+        # decide whether we should stop or resume scanning and pairing
+        in_game = is_in_game()
+        if not in_game and not scan_active:
+            print("emustation is active now, resuming scan")
+            bt.scan_async(timeout=MAX_SCAN_TIME)
+            scan_active = True
+        elif in_game and scan_active:
+            print("emustation is inactive now, stopping scan")
+            bt.scan_stop()
+            scan_active = False
+
+        print("Starting scan {}, please wait...".format(iteration))
+        time.sleep(3)
+
+        # stop if a game is running
+        if is_in_game():
+            continue
+
+        for i in range(CONNECT_ATTEMPTS):
+            print("Starting connect attempt {}, please wait...".format(i + 1))
+            devices = bt.devices()
+            for dev in devices:
+                if True:
+                    print(dev)
+                if (
+                    not dev.connected  # exclude already connected devices
+                    and (dev.rssi != 0)
+                    and "input-" in dev.icon  # exclude any non-input device
+#                    and len(dev.name.strip()) > 0  # exclude unnamed devices
+                ):
+                    print(
+                        "found device {}, mac: {}, icon: {}, paired: {}".format(
+                            dev.name, dev.mac, dev.icon, dev.paired
+                        )
                     )
-                )
 
-                # handle if a device is trying to pair while it's already paired
-                if dev.paired:
-                    print("pairing a paired device {}".format(dev.name))
-                    bt.forget(dev)
+                    res = True
+                    if not dev.trusted:
+                        print("trusting a device {}".format(dev.name))
+                        res = bt.trust(dev)
 
-                # trust then pair and finally connect
-                if bt.trust(dev) and bt.pair(dev) and bt.connect(dev): # new code bug - see comments up.
-                    print("successfully paired {}".format(dev.name))
-                else:
-                    # if for any reason one step fails, forget the device so next time it can be paired
-                    bt.forget(dev)
-                    print("failed to pair {}, try again".format(dev.name))
+                    # handle if a device is trying to pair while it's already paired
+                    if res and not dev.paired:
+                        print("pairing a paired device {}".format(dev.name))
+                        res = bt.pair(dev)
 
-            elif (
-                dev.connected and not dev.trusted and not dev.paired
-                and "input-" in dev.icon
-            ):
-                print(
-                    "trusting device {}, mac: {}, icon: {}, paired: {}".format(
-                        dev.name, dev.mac, dev.icon, dev.paired
+                    # trust then pair and finally connect
+                    if res and bt.connect(dev):
+                        print("successfully connected {}".format(dev.name))
+                    else:
+                        # if for any reason one step fails, forget the device so next time it can be paired
+                        bt.forget(dev)
+                        print("failed to connect {}, try again.".format(dev.name))
+                elif (
+                    dev.connected and not dev.trusted
+                    and "input-" in dev.icon
+                ):
+                    print(
+                        "trusting and pairing device {}, mac: {}, icon: {}, paired: {}".format(
+                            dev.name, dev.mac, dev.icon, dev.paired
+                        )
                     )
-                )
 
-                if bt.trust(dev) and bt.pair(dev):
-                    print("successfully paired {} now connect cable.".format(dev.name))
+                    if bt.trust(dev):
+                        bt.pair(dev)
+                        print("successfully trusted {} now connect cable.".format(dev.name))
+                elif (
+                    not dev.connected and dev.trusted
+                    and "input-" in dev.icon
+                ):
+                    print(
+                        "pairing and connecting device {}, mac: {}, icon: {}, paired: {}".format(
+                            dev.name, dev.mac, dev.icon, dev.paired
+                        )
+                    )
+
+                    res = True
+                    if not dev.paired:
+                        res = bt.pair(dev)
+
+                    if res and bt.connect(dev):
+                        print("successfully paired {}".format(dev.name))
+
+            time.sleep(SCAN_TIME // CONNECT_ATTEMPTS)
+        print("Stopped scan {}.".format(iteration))
+        bt.scan_stop()
+        scan_active = False
+        iteration += 1
+        time.sleep(SCAN_INTERVAL)

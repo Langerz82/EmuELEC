@@ -118,13 +118,16 @@ wait
 
 # Start Scanning for Bluetooth Controllers
 BTENABLED=$(get_ee_setting ee_bluetooth.enabled)
-
+BTPOLLING=$(get_ee_setting ee_bluetooth_polling)
 if [[ "$BTENABLED" != "1" ]]; then
-systemctl stop bluetooth
-rm /storage/.cache/services/bluez.conf & 
+  systemctl stop bluetooth
+  rm /storage/.cache/services/bluez.conf & 
 else
-systemctl restart bluetooth
-emuelec-bluetooth 15 45 &
+  systemctl restart bluetooth
+  if [[ -n ${BTPOLLING} ]] && [[ ${BTPOLLING} > 0 ]]; then
+    emuelec-bluetooth 21600 &
+  else
+    emuelec-bluetooth &
 fi
 
 # What to start at boot?
