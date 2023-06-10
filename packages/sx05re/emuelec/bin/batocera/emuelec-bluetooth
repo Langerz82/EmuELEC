@@ -188,7 +188,7 @@ def is_bluetooth_running():
 LIFETIME = 60
 SCAN_TIME = 5
 CONNECT_ATTEMPTS = 5
-SCAN_INTERVAL = 15
+SCAN_INTERVAL = 5
 MAX_SCAN_TIME = 60
 
 if __name__ == "__main__":

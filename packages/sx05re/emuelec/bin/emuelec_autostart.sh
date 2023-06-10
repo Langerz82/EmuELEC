@@ -125,9 +125,9 @@ if [[ "$BTENABLED" != "1" ]]; then
 else
   systemctl restart bluetooth
   if [[ -n ${BTPOLLING} ]] && [[ ${BTPOLLING} > 0 ]]; then
-    emuelec-bluetooth 60 5 5 5 && emuelec-bluetooth 21600 &
+    emuelec-bluetooth 60 && emuelec-bluetooth 21600 &
   else
-    emuelec-bluetooth 60 5 5 5 &
+    emuelec-bluetooth 60 &
   fi
 fi
 
