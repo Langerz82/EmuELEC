@@ -19,7 +19,7 @@ ROMNAME="$4"
 CONFIG_DIR="/tmp/joypads_ra/${CORE}/"
 mkdir -p ""${CONFIG_DIR}""
 
-BTN_CFG="0 1 2 3 4 5 6 7"
+BTN_CFG_DEF="0 1 2 3 4 5 6 7"
 
 declare -A RA_VALUES=(
   ["b0"]="0"
@@ -120,9 +120,9 @@ declare -A GC_NAMES=()
 
 
 get_button_cfg() {
+	local BTN_CFG="$BTN_CFG_DEF"
 	local BTN_INDEX=$(get_ee_setting "joy_btn_cfg" "${PLATFORM}" "${ROMNAME}")
   [[ -z $BTN_INDEX ]] && BTN_INDEX=$(get_ee_setting "${PLATFORM}.joy_btn_cfg")
-
   if [[ ! -z $BTN_INDEX ]] && [[ $BTN_INDEX -gt 0 ]]; then
 		local BTN_SETTING="${EMULATOR}.joy_btn_order$BTN_INDEX"
     local BTN_CFG_TMP="$(get_ee_setting $BTN_SETTING)"
@@ -143,6 +143,24 @@ set_pad(){
   local DEVICE_GUID=$3
   local JOY_NAME="$4"
 
+	CONFIG="${CONFIG_DIR}/player${1}.cfg"
+#  CONFIG_M="${CONFIG_DIR}/player_menu.cfg"	
+	rm "${CONFIG}"
+	#echo "input_joypad_index = \"${1}\"" > "${CONFIG}"
+
+
+  [[ ! -z "${GC_CORES[${CORE}]}" ]] && CORE="${GC_CORES[${CORE}]}"
+  mkdir -p "/storage/.config/retroarch/config/remappings/${CORE}"
+  local REMAP_FILE="/storage/.config/retroarch/config/remappings/${CORE}/${CORE}.rmp"
+  if [[ -f "${REMAP_FILE}" ]]; then
+    sed -i "/input_player${1}_btn.*/d" "${REMAP_FILE}"
+#    sed -i "/input_player${1}.*axis.*/d" "${REMAP_FILE}"
+  fi
+
+  if [[ "$BTN_CFG" == "$BTN_CFG_DEF" ]]; then
+    return
+  fi
+
   local GC_CONFIG=$(cat "$GCDB" | grep "$DEVICE_GUID" | grep "platform:Linux" | head -1)
   echo "GC_CONFIG=$GC_CONFIG"
   [[ -z $GC_CONFIG ]] && return
@@ -152,10 +170,6 @@ set_pad(){
 
   #local GAMEPAD="$( cat "/tmp/JOYPAD_NAMES/JOYPAD${1}.txt" | cut -d'"' -f 2 )"
 
-  CONFIG="${CONFIG_DIR}/player${1}.cfg"
-  CONFIG_M="${CONFIG_DIR}/player_menu.cfg"
-
-  rm "${CONFIG}"
   # rm "${CONFIG_M}"
 
   #OLD_CONFIG="/tmp/joypads/${GAMEPAD}.cfg"
@@ -165,7 +179,7 @@ set_pad(){
   #  VENDOR=$( cat "${OLD_CONFIG}" | grep "input_vendor_id" | cut -d'"' -f 2 )
   #  PRODUCT=$( cat "${OLD_CONFIG}" | grep "input_product_id" | cut -d'"' -f 2 )
   #fi
-  echo "input_joypad_index = \"${1}\"" >> "${CONFIG}"
+  
   #echo "input_device = \"${GAMEPAD}\"" >> "${CONFIG}"
   #echo "input_driver = \"udev\"" >> "${CONFIG}"
   #echo "input_vendor_id = \"${VENDOR}\"" >> "${CONFIG}"
@@ -185,39 +199,39 @@ set_pad(){
     local TVAL=$(echo $REC | cut -d ":" -f 2)
     GC_ASSOC["$GC_INDEX"]=$TVAL
 
-    [[ " ${GC_ORDER[*]} " == *" ${GC_INDEX} "* ]] && continue
-    local BUTTON_VAL=${TVAL:1}
-    local BTN_TYPE=${TVAL:0:1}
+#    [[ " ${GC_ORDER[*]} " == *" ${GC_INDEX} "* ]] && continue
+#    local BUTTON_VAL=${TVAL:1}
+#    local BTN_TYPE=${TVAL:0:1}
 
-    local FIELD="${RA_BUTTONS[${GC_INDEX}]}"
-    local VAL="${RA_VALUES[${TVAL}]}"
+#    local FIELD="${RA_BUTTONS[${GC_INDEX}]}"
+#    local VAL="${RA_VALUES[${TVAL}]}"
 
     # Create ordinary buttons and analog dirs.
-    case $GC_INDEX in
-      dpup|dpdown|dpleft|dpright|back|start)
-        if [[ "$BTN_TYPE" == "b" ]]; then
-          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-        elif [[ "$BTN_TYPE" == "h" ]]; then
-          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-        fi
-
-        #FIELD="${RA_MENU[${GC_INDEX}]}"
-        #[[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
-        ;;
-      leftx|lefty|rightx|righty)
-        if [[ "$BTN_TYPE" == "a" ]]; then
-          FIELD="${RA_BUTTONS[${GC_INDEX},1]}"
-          VAL="${RA_VALUES[${TVAL},1]}"
-          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-
-          FIELD="${RA_BUTTONS[${GC_INDEX},2]}"
-          VAL="${RA_VALUES[${TVAL},2]}"            
-          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
-          
-          #FIELD="${RA_MENU[${GC_INDEX}]}"
-          #[[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
-        fi
-    esac
+#    case $GC_INDEX in
+#      dpup|dpdown|dpleft|dpright|back|start)
+#        if [[ "$BTN_TYPE" == "b" ]]; then
+#          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
+#        elif [[ "$BTN_TYPE" == "h" ]]; then
+#          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
+#        fi
+#
+#        FIELD="${RA_MENU[${GC_INDEX}]}"
+#        [[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
+#        ;;
+#      leftx|lefty|rightx|righty)
+#        if [[ "$BTN_TYPE" == "a" ]]; then
+#          FIELD="${RA_BUTTONS[${GC_INDEX},1]}"
+#          VAL="${RA_VALUES[${TVAL},1]}"
+#          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
+#
+#          FIELD="${RA_BUTTONS[${GC_INDEX},2]}"
+#          VAL="${RA_VALUES[${TVAL},2]}"            
+#          echo "${FIELD} = \"${VAL}\"" >> "${CONFIG}"
+#          
+#          FIELD="${RA_MENU[${GC_INDEX}]}"
+#          [[ ! -z ${FIELD} ]] && echo "${FIELD} = \"${VAL}\"" >> "${CONFIG_M}"
+#        fi
+#    esac
   done
 
   declare -i i=0
@@ -245,24 +259,17 @@ set_pad(){
     (( i++ ))
   done
 
-  sed -i "s|input_*|input_player${1}_|" "${CONFIG}"
+	sed -i "s|input_*|input_player${1}_|" "${CONFIG}"
+  cat "${CONFIG}" | grep _btn_ >> "${REMAP_FILE}"
+	rm "${CONFIG}"
+	
+#   if [[ "${1}" == "1" ]]; then
+#    for menu_field in ${RA_MENU[*]}; do
+#      sed -i "/${menu_field}.*/d" "${REMAP_FILE}"
+#    done
+#    cat "${CONFIG_M}" >> "${REMAP_FILE}"
+#  fi
 
-  [[ ! -z "${GC_CORES[${CORE}]}" ]] && CORE="${GC_CORES[${CORE}]}"
-  mkdir -p "/storage/.config/retroarch/config/remappings/${CORE}"
-  local REMAP_FILE="/storage/.config/retroarch/config/remappings/${CORE}/${CORE}.rmp"
-  if [[ -f "${REMAP_FILE}" ]]; then
-    sed -i "/input_player${1}_.*btn.*/d" "${REMAP_FILE}"
-    sed -i "/input_player${1}_.*axis.*/d" "${REMAP_FILE}"
-  fi
-
-  cat "${CONFIG}" >> "${REMAP_FILE}"
-
-  # if [[ "${1}" == "1" ]]; then
-  #  for menu_field in ${RA_MENU[*]}; do
-  #    sed -i "/${menu_field}.*/d" "${REMAP_FILE}"
-  #  done
-    #cat "${CONFIG_M}" >> "${REMAP_FILE}"
-  #fi
 }
 
 BTN_CFG=$(get_button_cfg)

@@ -165,6 +165,7 @@ declare -A GC_CORES=(
 #  [handy]=""
 #  [hatari]=""  
   [mame2003]="MAME 2003-Plus"
+	[mame2003_plus]="MAME 2003-Plus"
   [mame2010]="MAME 2010"
   [mame2016]="MAME 2016"
 #  [mednafen_lynx]=""
