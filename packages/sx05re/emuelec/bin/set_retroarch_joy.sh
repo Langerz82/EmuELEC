@@ -19,6 +19,10 @@ ROMNAME="$4"
 CONFIG_DIR="/tmp/joypads_ra/${CORE}/"
 mkdir -p ""${CONFIG_DIR}""
 
+[[ ! -z "${GC_CORES[${CORE}]}" ]] && CORE_REMAP="${GC_CORES[${CORE}]}"
+mkdir -p "/storage/.config/retroarch/config/remappings/${CORE_REMAP}"
+REMAP_FILE="/storage/.config/retroarch/config/remappings/${CORE_REMAP}/${CORE_REMAP}.rmp"
+
 BTN_CFG_DEF="0 1 2 3 4 5 6 7"
 
 declare -A RA_VALUES=(
@@ -120,46 +124,45 @@ declare -A GC_NAMES=()
 
 
 get_button_cfg() {
-	local BTN_CFG="$BTN_CFG_DEF"
+	local L_BTN_CFG="$BTN_CFG_DEF"
 	local BTN_INDEX=$(get_ee_setting "joy_btn_cfg" "${PLATFORM}" "${ROMNAME}")
   [[ -z $BTN_INDEX ]] && BTN_INDEX=$(get_ee_setting "${PLATFORM}.joy_btn_cfg")
   if [[ ! -z $BTN_INDEX ]] && [[ $BTN_INDEX -gt 0 ]]; then
 		local BTN_SETTING="${EMULATOR}.joy_btn_order$BTN_INDEX"
     local BTN_CFG_TMP="$(get_ee_setting $BTN_SETTING)"
-		[[ ! -z $BTN_CFG_TMP ]] && BTN_CFG="${BTN_CFG_TMP}"
+		[[ ! -z $BTN_CFG_TMP ]] && L_BTN_CFG="${BTN_CFG_TMP}"
 	fi
-	echo "$BTN_CFG"
+	echo "$L_BTN_CFG"
 }
 
 
 clean_pad() {
   echo "clean_pad()"
+#	[[ ! -z "${GC_CORES[${CORE}]}" ]] && CORE="${GC_CORES[${CORE}]}"
+#  mkdir -p "/storage/.config/retroarch/config/remappings/${CORE}"
+#  local REMAP_FILE="/storage/.config/retroarch/config/remappings/${CORE}/${CORE}.rmp"
+  if [[ -f "${REMAP_FILE}" ]]; then
+    sed -i "/input_player${1}_btn.*/d" "${REMAP_FILE}"
+#    sed -i "/input_player${1}.*axis.*/d" "${REMAP_FILE}"
+  fi	
 }
 
 
 # Sets pad depending on parameters $GAMEPAD = name $1 = player
 set_pad(){
+	if [[ "$G_BTN_CFG" == "$BTN_CFG_DEF" ]]; then
+		return
+	fi
+
   local P_INDEX=$(( $1 - 1 ))
   local DEVICE_GUID=$3
   local JOY_NAME="$4"
 
 	CONFIG="${CONFIG_DIR}/player${1}.cfg"
 #  CONFIG_M="${CONFIG_DIR}/player_menu.cfg"	
-	rm "${CONFIG}"
+	[[ -f "${CONFIG}" ]] && rm "${CONFIG}"
+	touch "${CONFIG}"
 	#echo "input_joypad_index = \"${1}\"" > "${CONFIG}"
-
-
-  [[ ! -z "${GC_CORES[${CORE}]}" ]] && CORE="${GC_CORES[${CORE}]}"
-  mkdir -p "/storage/.config/retroarch/config/remappings/${CORE}"
-  local REMAP_FILE="/storage/.config/retroarch/config/remappings/${CORE}/${CORE}.rmp"
-  if [[ -f "${REMAP_FILE}" ]]; then
-    sed -i "/input_player${1}_btn.*/d" "${REMAP_FILE}"
-#    sed -i "/input_player${1}.*axis.*/d" "${REMAP_FILE}"
-  fi
-
-  if [[ "$BTN_CFG" == "$BTN_CFG_DEF" ]]; then
-    return
-  fi
 
   local GC_CONFIG=$(cat "$GCDB" | grep "$DEVICE_GUID" | grep "platform:Linux" | head -1)
   echo "GC_CONFIG=$GC_CONFIG"
@@ -235,7 +238,7 @@ set_pad(){
   done
 
   declare -i i=0
-  for bi in ${BTN_CFG}; do
+  for bi in ${G_BTN_CFG}; do
     local button="${GC_ORDER[$i]}"
     local FIELD="${RA_BUTTONS[${button}]}"
     local FIELD2="${RA_MENU[${button}]}"
@@ -272,8 +275,9 @@ set_pad(){
 
 }
 
-BTN_CFG=$(get_button_cfg)
-echo "BTN_CFG=$BTN_CFG"
+G_BTN_CFG=$(get_button_cfg)
+echo "BTN_CFG=$G_BTN_CFG"
+
 
 AUTOGP=$(get_ee_setting retroarch_auto_gamepad)
 [[ "${AUTOGP}" == "1" ]] && jc_get_players
