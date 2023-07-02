@@ -263,6 +263,12 @@ set_pad(){
   done
 
 	sed -i "s|input_*|input_player${1}_|" "${CONFIG}"
+
+	local STR="input_libretro_device_p${1} = \"1\""
+	grep -qx "${STR}" "${REMAP_FILE}" || echo "${STR}" >> "${REMAP_FILE}"
+	STR="input_remap_port_p${1} = \"${P_INDEX}\""
+	grep -qx "${STR}" "${REMAP_FILE}" || echo "${STR}" >> "${REMAP_FILE}"
+
   cat "${CONFIG}" | grep _btn_ >> "${REMAP_FILE}"
 	rm "${CONFIG}"
 	
