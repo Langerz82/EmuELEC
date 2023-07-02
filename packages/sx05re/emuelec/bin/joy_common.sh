@@ -249,8 +249,8 @@ wipe_gamepad()
       sed -i "/input_map\[.*/d" ${ADVMAME_CONFIG}      
       ;;
     "libretro")
-      sed -i "/input_player[0-9]*_.*_btn.*/d" "${LIBRETRO_REMAP}"
-      sed -i "/input_player[0-9]*_.*_axis.*/d" "${LIBRETRO_REMAP}"      
+      sed -i "/input_player[0-9]*_btn.*/d" "${LIBRETRO_REMAP}"
+      sed -i "/input_player[0-9]*_axis.*/d" "${LIBRETRO_REMAP}"      
       ;;
   esac
 }
