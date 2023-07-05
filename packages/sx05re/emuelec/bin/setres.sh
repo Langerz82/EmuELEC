@@ -28,6 +28,8 @@ switch_resolution()
       sleep 0.5
       echo $MODE > "${FILE_MODE}"
   esac
+	NEW_MODE=$( cat ${FILE_MODE} )
+	[[ "$NEW_MODE" != "$MODE" ]] && exit 1
 }
 
 get_resolution_size()
@@ -138,6 +140,9 @@ set_display_borders() {
 # The Mode we want the display to change too.
 MODE=$1
 PLATFORM=$2
+EMU_MODE="ee_es"
+[[ ! -z $PLATFORM ]] && EMU_MODE="ee_emu"
+
 FBW=0
 FBH=0
 
@@ -202,8 +207,8 @@ if [[ "$MODE" == *"cvbs" ]]; then
   fi
 fi
 
-CUSTOM_RES=$(get_ee_setting ${PLATFORM}.${MODE}.ee_framebuffer)
-[[ -z "$CUSTOM_RES" ]] && CUSTOM_RES=$(get_ee_setting ${MODE}.ee_framebuffer)
+CUSTOM_RES=$(get_ee_setting framebuffer.${MODE} ${EMU_MODE})
+#[[ -z "$CUSTOM_RES" ]] && CUSTOM_RES=$(get_ee_setting ee_framebuffer.${MODE})
 if [[ ! -z "${CUSTOM_RES}" ]]; then
   declare -a RES=($(echo "${CUSTOM_RES}"))
   if [[ ! -z "${RES[@]}" ]]; then
@@ -212,12 +217,9 @@ if [[ ! -z "${CUSTOM_RES}" ]]; then
   fi
 fi
 
-switch_resolution $MODE
 
-# Check that the display mode did change or just show the screen and exit. This
-# is a safeguard to prevent continueing with display settings.
-NEW_MODE=$( cat ${FILE_MODE} )
-[[ "$NEW_MODE" != "$MODE" ]] && exit 1
+[[ $MODE != "auto" ]] && switch_resolution $MODE
+MODE=$( cat ${FILE_MODE} )
 
 
 declare -a SIZE=($( get_resolution_size $MODE $FBW $FBH))
@@ -226,6 +228,8 @@ FBW=${SIZE[0]}
 FBH=${SIZE[1]}
 PSW=${SIZE[2]}
 PSH=${SIZE[3]}
+
+echo $FBW $FBH
 
 # Once we know the Width and Height is valid numbers we set the primary display
 # buffer, and we multiply the 2nd height by a factor of 2 I assume for interlaced 
@@ -251,8 +255,8 @@ if [[ -f "/storage/.config/${MODE}_offsets" ]]; then
   CUSTOM_OFFSETS=( $( cat "/storage/.config/${MODE}_offsets" ) )
 fi
 
-OFFSET_SETTING="$(get_ee_setting ${PLATFORM}.${MODE}.ee_offsets)"
-[[ -z "${OFFSET_SETTING}" ]] && OFFSET_SETTING="$(get_ee_setting ${MODE}.ee_offsets)"
+OFFSET_SETTING="$(get_ee_setting framebuffer_border.${MODE} ${EMU_MODE})"
+#[[ -z "${OFFSET_SETTING}" ]] && OFFSET_SETTING="$(get_ee_setting ${MODE}.ee_offsets)"
 if [[ ! -z "${OFFSET_SETTING}" ]]; then
   CUSTOM_OFFSETS=( ${OFFSET_SETTING} )
 fi
@@ -262,16 +266,19 @@ fi
 COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
 if [[ "$MODE" == *"cvbs" ]]; then
   if [[ "$COUNT_ARGS" == "0" ]]; then
-    [[ "$MODE" == "480cvbs" ]] && CUSTOM_OFFSETS="55 13"
-    [[ "$MODE" == "576cvbs" ]] && CUSTOM_OFFSETS="55 13"
+    [[ "$MODE" == "480cvbs" ]] && CUSTOM_OFFSETS="5 13"
+    [[ "$MODE" == "576cvbs" ]] && CUSTOM_OFFSETS="5 13"
   fi
 fi
 
-if [[ "$COUNT_ARGS" == "2" ]]; then
+COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
+if [[ "$COUNT_ARGS" == "0" ]] && [[ $FBW != $PSW || $FBH != $PSH ]]; then
+	CUSTOM_OFFSETS=(0 0 $(( PSW - 1 )) $(( PSH - 1 )))
+elif [[ "$COUNT_ARGS" == "2" ]]; then
   TMP="${CUSTOM_OFFSETS[0]}"
-  CUSTOM_OFFSETS[2]=$(( $RW - $TMP - 1 ))
+  CUSTOM_OFFSETS[2]=$(( $PSW - $TMP - 1 ))
   TMP="${CUSTOM_OFFSETS[1]}"
-  CUSTOM_OFFSETS[3]=$(( $RH - $TMP - 1 ))
+  CUSTOM_OFFSETS[3]=$(( $PSH - $TMP - 1 ))
 fi
 
 COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
@@ -281,6 +288,7 @@ if [[ "$COUNT_ARGS" == "4" ]]; then
   echo 0x10001 > /sys/class/graphics/fb0/free_scale
   exit 0
 fi
+
 
 # Gets the default X, and Y position offsets for cvbs so the display can fit 
 # inside the actual analog diplay resolution which is a bit smaller than the 
