@@ -96,6 +96,15 @@ set_main_framebuffer() {
   fi
 }
 
+set_fb_borders() {
+	local CUSTOM_OFFSETS=( $1 $2 $3 $4 )
+	local COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
+	if [[ "$COUNT_ARGS" == "4" ]]; then
+	  echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb0/window_axis
+	  echo 1 > /sys/class/graphics/fb0/freescale_mode
+	  echo 0x10001 > /sys/class/graphics/fb0/free_scale
+	fi
+}
 
 # Here we initialize any arguments and variables to be used in the script.
 # The Mode we want the display to change too.
@@ -233,14 +242,10 @@ elif [[ "$COUNT_ARGS" == "2" ]]; then
   CUSTOM_OFFSETS[3]=$(( $PSH - $TMP - 1 ))
 fi
 
-COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
-if [[ "$COUNT_ARGS" == "4" ]]; then
-  echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb0/window_axis
-  echo 1 > /sys/class/graphics/fb0/freescale_mode
-  echo 0x10001 > /sys/class/graphics/fb0/free_scale
+if [[ "${#CUSTOM_OFFSETS[@]}" == "4" ]]; then
+	set_fb_borders ${CUSTOM_OFFSETS[@]}
   exit 0
 fi
-
 
 # Gets the default X, and Y position offsets for cvbs so the display can fit 
 # inside the actual analog diplay resolution which is a bit smaller than the 
@@ -265,15 +270,6 @@ if [[ ! -z "${BORDER_VALS}" ]]; then
   fi
   A3=$(( PSW-A1-1 ))
   A4=$(( PSH-A2-1 ))
-  CUSTOM_OFFSETS=( ${A1} ${A2} ${A3} ${A4} )
+	set_fb_borders ${A1} ${A2} ${A3} ${A4}
 fi
 # End Legacy code
-
-COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
-if [[ "$COUNT_ARGS" == "4" ]]; then
-  echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb0/window_axis
-  echo 1 > /sys/class/graphics/fb0/freescale_mode
-  echo 0x10001 > /sys/class/graphics/fb0/free_scale
-  exit 0
-fi
-
