@@ -23,7 +23,7 @@ if [ ! -L "/storage/.advance" ]; then
     ln -sf ${CONFIG_DIR} /storage/.advance
 fi
 
-if [[ "$1" = *"roms/arcade"* ]]; then
+if [[ "$2" = *"roms/arcade"* ]]; then
 sed -i "s|/roms/mame|/roms/arcade|g" $CONFIG_DIR/advmame.rc
  else
 sed -i "s|/roms/arcade|/roms/mame|g" $CONFIG_DIR/advmame.rc
@@ -61,17 +61,18 @@ if [ "$EE_DEVICE" != "OdroidGoAdvance" ] && [ "$EE_DEVICE" != "GameForce" ]; the
     esac
 fi
 
-ROMNAME=$(basename $1)
+PLATFORM=${1}
+ROMNAME=$(basename $2)
 AUTOGP=$(get_ee_setting advmame_auto_gamepad)
 
 # Hack - Set the crash stack size to 0 to prevent program doing a large dump of poo.
 CRASH_STACK_SIZE=$( ulimit -c )
 
-[[ "${AUTOGP}" != "0" ]] && set_advmame_joy.sh "$ROMNAME"
+[[ "${AUTOGP}" != "0" ]] && set_advmame_joy.sh "${PLATFORM}" "$ROMNAME"
 
 # Hack - Revert crash stack size so it can poo nicely.
 ulimit -c $CRASH_STACK_SIZE
 
-ARG=$(echo basename $1 | sed 's/\.[^.]*$//')
-ARG="$(echo $1 | sed 's=.*/==;s/\.[^.]*$//')"
+ARG=$(echo basename $2 | sed 's/\.[^.]*$//')
+ARG="$(echo $2 | sed 's=.*/==;s/\.[^.]*$//')"
 SDL_AUDIODRIVER=alsa advmame $ARG -quiet

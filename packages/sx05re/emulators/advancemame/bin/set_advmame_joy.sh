@@ -11,11 +11,14 @@
 CONFIG_DIR="/storage/.advance"
 CONFIG="${CONFIG_DIR}/advmame.rc"
 ES_FEATURES="/storage/.config/emulationstation/es_features.cfg"
+EE_CFG="/emuelec/configs/emuelec.conf"
 
 source joy_common.sh "advmame"
 
-ROMNAME=$1
-
+PLATFORM="$1"
+EMULATOR="AdvanceMame"
+CORE="AdvanceMame"
+ROMNAME="$2"
 
 BTN_CFG="0 1 2 3 4 5 6 7"
 
@@ -59,17 +62,17 @@ declare GC_ORDER=(
   "b"
   "x"
   "y"
-  "rightshoulder"
   "leftshoulder"
-  "righttrigger"
+  "rightshoulder"
   "lefttrigger"
+  "righttrigger"
 )
 
 declare -A GC_NAMES=()
 
 get_button_cfg() {
-	local BTN_INDEX=$(get_ee_setting "joy_btn_cfg" "mame" "${ROMNAME}")
-  [[ -z $BTN_INDEX ]] && BTN_INDEX=$(get_ee_setting "mame.joy_btn_cfg")
+	local BTN_INDEX=$(get_ee_setting "joy_btn_cfg" "${PLATFORM}" "${ROMNAME}")
+  [[ -z $BTN_INDEX ]] && BTN_INDEX=$(get_ee_setting "${PLATFORM}.joy_btn_cfg")
 
   if [[ ! -z $BTN_INDEX ]] && [[ $BTN_INDEX -gt 0 ]]; then
 		local BTN_SETTING="AdvanceMame.joy_btn_order$BTN_INDEX"
@@ -211,10 +214,8 @@ set_pad(){
 
   declare -i i=1
   for bi in ${BTN_CFG}; do
-    local button="${GC_ORDER[$bi]}"
-    [[ -z "$button" ]] && continue
-    button="${GC_ASSOC[$button]}"
-    
+    local vi="${GC_ORDER[${bi}]}"
+    local button="${GC_ASSOC[${vi}]}"
     local BTN_TYPE="${button:0:1}"
     if [[ "$BTN_TYPE" == "a" ]]; then
       local STR="input_map[p${1}_button${i}]"
@@ -271,9 +272,7 @@ set_pad(){
   fi
 }
 
-ADVMAME_REGEX="<emulator.*name\=\"AdvanceMame\" +features\=.*[ ,\"]joybtnremap[ ,\"].*/>"
-ADVMAME_REMAP=$(cat "${ES_FEATURES}" | grep -E "$ADVMAME_REGEX")
-[[ ! -z "$ADVMAME_REMAP" ]] && BTN_CFG=$(get_button_cfg)
+BTN_CFG=$(get_button_cfg)
 echo "BTN_CFG=$BTN_CFG"
 
 jc_get_players

@@ -192,16 +192,16 @@ case ${PLATFORM} in
 	"mame"|"arcade"|"cps1"|"cps2"|"cps3")
 		if [ "$EMU" = "AdvanceMame" ]; then
             set_kill_keys "advmame" 3
-            RUNTHIS='${TBASH} advmame.sh "${ROMNAME}"'
+            RUNTHIS='${TBASH} advmame.sh "${PLATFORM}" "${ROMNAME}"'
 		elif [ "$EMU" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
-            RUNTHIS='fbneo.sh "${ROMNAME}"'
+            RUNTHIS='fbneo.sh "${PLATFORM}" "${ROMNAME}"'
 		fi
 		;;
 	"fbn"|"neogeo")
         if [ "$EMU" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
-            RUNTHIS='fbneo.sh "${ROMNAME}"'
+            RUNTHIS='fbneo.sh "${PLATFORM}" "${ROMNAME}"'
 		fi
 		;;
 	"nds")
@@ -275,7 +275,7 @@ case ${PLATFORM} in
             RUNTHIS='${RABIN} $VERBOSE -L /tmp/cores/fbneo_libretro.so --subsystem neocd --config ${RACONF} "${ROMNAME}"'
 		elif [ "$EMU" = "FbneoSA" ]; then
             set_kill_keys "fbneo"
-            RUNTHIS='fbneo.sh "${ROMNAME}" NCD'
+            RUNTHIS='fbneo.sh "${PLATFORM}" "${ROMNAME}" NCD'
 		fi
 		;;
 	"mplayer")
@@ -324,6 +324,8 @@ case ${PLATFORM} in
 	esac
 elif [ ${LIBRETRO} == "yes" ]; then
 # We are running a Libretro emulator set all the settings that we chose on ES
+
+set_retroarch_joy.sh "${PLATFORM}" "libretro" "${CORE}" "$(basename ${ROMNAME})"
 
 if [[ ${PLATFORM} == "ports" ]]; then
 	PORTCORE="${arguments##*-C}"  # read from -C onwards
@@ -456,6 +458,11 @@ else
    echo "Emulator log was dissabled" >> $EMUELECLOG
    eval ${RUNTHIS} > /dev/null 2>&1
    ret_error=$?
+fi
+
+# Restore joypads back to default RA record.
+if [ ${LIBRETRO} == "yes" ]; then
+  sed -i "s|joypad_autoconfig_dir =.*|joypad_autoconfig_dir = /tmp/joypads|" "/storage/.config/retroarch/retroarch.cfg"
 fi
 
 blank_buffer
