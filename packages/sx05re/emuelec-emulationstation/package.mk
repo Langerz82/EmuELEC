@@ -2,8 +2,8 @@
 # Copyright (C) 2019-present Shanti Gilbert (https://github.com/shantigilbert)
 
 PKG_NAME="emuelec-emulationstation"
-PKG_VERSION="b33834d224283afd14ad4e6c563b07aa2b8394d6"
-PKG_GIT_CLONE_BRANCH="EE-set-fb-and-resize"
+PKG_VERSION="f4ed664333a05227e02fb86ce0c55d872b966f1a"
+PKG_GIT_CLONE_BRANCH="ES-4.6.1-TEST"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
