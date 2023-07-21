@@ -7,6 +7,7 @@
 # Source predefined functions and variables
 . /etc/profile
 
+source joy_remapping_cores.sh
 source joy_common.sh "retroarch"
 
 EE_CFG="/emuelec/configs/emuelec.conf"
@@ -19,7 +20,10 @@ ROMNAME="$4"
 CONFIG_DIR="/tmp/joypads_ra/${CORE}/"
 mkdir -p ""${CONFIG_DIR}""
 
+CORE_REMAP=
 [[ ! -z "${GC_CORES[${CORE}]}" ]] && CORE_REMAP="${GC_CORES[${CORE}]}"
+[[ -z "${CORE_REMAP}" ]] && exit 0
+
 mkdir -p "/storage/.config/retroarch/config/remappings/${CORE_REMAP}"
 REMAP_FILE="/storage/.config/retroarch/config/remappings/${CORE_REMAP}/${CORE_REMAP}.rmp"
 

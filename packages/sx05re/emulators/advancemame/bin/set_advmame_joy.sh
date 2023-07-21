@@ -84,15 +84,13 @@ get_button_cfg() {
 
 
 clean_pad() {
-	sed -i "/device_joystick.*/d" ${CONFIG}
 	sed -i "/input_map\[p${1}_.*/d" ${CONFIG}
 	sed -i "/input_map\[coin${1}.*/d" ${CONFIG}
 	sed -i "/input_map\[start${1}.*/d" ${CONFIG}
 
   if [[ "${1}" == "1" ]]; then
     sed -i '/input_map\[ui_[[:alpha:]]*\].*/d' ${CONFIG}
-  fi
-	echo "device_joystick raw" >> ${CONFIG}
+  fi	
 }
 
 
@@ -274,5 +272,9 @@ set_pad(){
 
 BTN_CFG=$(get_button_cfg)
 echo "BTN_CFG=$BTN_CFG"
+
+sed -i "/device_joystick.*/d" ${CONFIG}
+sed -i "/input_map\[.*/d" ${CONFIG}      
+echo "device_joystick raw" >> ${CONFIG}
 
 jc_get_players
