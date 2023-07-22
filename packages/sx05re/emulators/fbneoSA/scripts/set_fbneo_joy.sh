@@ -112,7 +112,6 @@ get_button_cfg() {
 }
 
 
-		
 clean_pad() {
   echo "clean_pad()"
 	sed -i "/input \"p${1}.*/d" "${FB_CFG_DIR}p${1}defaults.ini"
