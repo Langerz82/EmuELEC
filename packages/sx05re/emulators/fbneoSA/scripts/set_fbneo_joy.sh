@@ -10,6 +10,7 @@
 source joy_common.sh "fbneosa"
 
 EE_CFG="/emuelec/configs/emuelec.conf"
+FB_CFG_DIR="/emuelec/configs/fbneo/config/"
 
 PLATFORM=$1
 EMULATOR="FBNEOSA"
@@ -113,6 +114,7 @@ get_button_cfg() {
 
 clean_pad() {
   echo "clean_pad()"
+	sed -i "/input \"p${1}.*/d" "${FB_CFG_DIR}p${1}defaults.ini"
 }
 
 

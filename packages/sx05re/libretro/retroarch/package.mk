@@ -222,7 +222,10 @@ fi
 
   mkdir -p $INSTALL/usr/config/retroarch/
   mv $INSTALL/etc/retroarch.cfg $INSTALL/usr/config/retroarch/
-  
+
+
+	mkdir -p ${INSTALL}/storage/.config/emuelec/scripts
+	cp ${PKG_DIR}/scripts/joy_remapping_cores.sh ${INSTALL}/storage/.config/emuelec/scripts
 }
 
 post_install() {  
