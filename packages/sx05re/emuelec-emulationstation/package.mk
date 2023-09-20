@@ -46,6 +46,13 @@ fi
 
 }
 
+is_package_in_string() {
+	if echo "$2" | grep -qE ".*(\b| )${1}(\b| ).*"; then
+		return 0
+	fi
+	return 1
+}
+
 makeinstall_target() {
 	mkdir -p ${INSTALL}/usr/config/emuelec/configs/locale/i18n/charmaps
 	cp -rf $PKG_BUILD/locale/lang/* ${INSTALL}/usr/config/emuelec/configs/locale/
@@ -126,6 +133,21 @@ else
 	# set parallel_n64_32b as default for handhelds
 	sed -i "s|<core default=\"true\">mupen64plus_next</core>|<core>mupen64plus_next</core>|g" ${CORESFILE}
 	sed -i "s|<core>parallel_n64_32b</core>|<core default=\"true\">parallel_n64_32b</core>|g" ${CORESFILE}
+fi
+
+if is_package_in_string "mame2003-midway" "$ADDON_EMUS"; then
+	xml ed -L -i "/systemList/system/name[.='arcade']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame2003_midway ${CORESFILE}
+	xml ed -L -i "/systemList/system/name[.='mame']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame2003_midway ${CORESFILE}
+fi
+
+if is_package_in_string "imame4all" "$ADDON_EMUS"; then
+	xml ed -L -i "/systemList/system/name[.='arcade']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v imame4all ${CORESFILE}
+	xml ed -L -i "/systemList/system/name[.='mame']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v imame4all ${CORESFILE}
+fi
+
+if is_package_in_string "mame2000" "$ADDON_EMUS"; then
+	xml ed -L -i "/systemList/system/name[.='arcade']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame2000 ${CORESFILE}
+	xml ed -L -i "/systemList/system/name[.='mame']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame2000 ${CORESFILE}
 fi
 
 }

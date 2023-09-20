@@ -74,6 +74,8 @@ if [ "$ARCH" == "aarch64" ]; then
   fi
 fi
 
+PKG_DEPENDS_TARGET+=" $ADDON_EMUS "
+
 make_target() {
   if [ "${DEVICE}" == "Amlogic-ng" ]; then
     cp -r $PKG_DIR/fbfix* $PKG_BUILD/
