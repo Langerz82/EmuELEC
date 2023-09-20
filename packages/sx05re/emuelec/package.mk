@@ -74,7 +74,7 @@ if [ "$ARCH" == "aarch64" ]; then
   fi
 fi
 
-PKG_DEPENDS_TARGET+=" $ADDON_EMUS "
+PKG_DEPENDS_TARGET+=" $ADDITIONAL_PACKAGES "
 
 make_target() {
   if [ "${DEVICE}" == "Amlogic-ng" ]; then

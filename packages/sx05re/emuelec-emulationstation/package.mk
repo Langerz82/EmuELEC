@@ -135,19 +135,24 @@ else
 	sed -i "s|<core>parallel_n64_32b</core>|<core default=\"true\">parallel_n64_32b</core>|g" ${CORESFILE}
 fi
 
-if is_package_in_string "mame2003-midway" "$ADDON_EMUS"; then
+if is_package_in_string "mame2003-midway" "$ADDITIONAL_PACKAGES"; then
 	xml ed -L -i "/systemList/system/name[.='arcade']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame2003_midway ${CORESFILE}
 	xml ed -L -i "/systemList/system/name[.='mame']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame2003_midway ${CORESFILE}
 fi
 
-if is_package_in_string "imame4all" "$ADDON_EMUS"; then
+if is_package_in_string "imame4all" "$ADDITIONAL_PACKAGES"; then
 	xml ed -L -i "/systemList/system/name[.='arcade']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v imame4all ${CORESFILE}
 	xml ed -L -i "/systemList/system/name[.='mame']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v imame4all ${CORESFILE}
 fi
 
-if is_package_in_string "mame2000" "$ADDON_EMUS"; then
+if is_package_in_string "mame2000" "$ADDITIONAL_PACKAGES"; then
 	xml ed -L -i "/systemList/system/name[.='arcade']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame2000 ${CORESFILE}
 	xml ed -L -i "/systemList/system/name[.='mame']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame2000 ${CORESFILE}
+fi
+
+if is_package_in_string "mame" "$ADDITIONAL_PACKAGES"; then
+	xml ed -L -i "/systemList/system/name[.='arcade']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame ${CORESFILE}
+	xml ed -L -i "/systemList/system/name[.='mame']/../emulators/emulator[@name='libretro']/cores/core[1]" -t elem -n core -v mame ${CORESFILE}
 fi
 
 }
