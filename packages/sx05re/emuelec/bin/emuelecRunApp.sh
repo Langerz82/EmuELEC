@@ -8,8 +8,7 @@
 
 # DO NOT modify this file, if you need to use autostart please use /storage/.config/custom_start.sh 
 
-PLATFORM="${2##*-P}"
-PLATFORM="${PLATFORM%% *}"
+PLATFORM="${2:2}"
 
 emuelec-utils init_app_video ${PLATFORM} "${1}"
 
