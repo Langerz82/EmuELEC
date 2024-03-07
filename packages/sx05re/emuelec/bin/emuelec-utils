@@ -369,6 +369,8 @@ function init_app_video() {
 	local ROMNAME=$2
 	local BASEROMNAME=${ROMNAME##*/}
 
+	[[ -f "/tmp/EE_LASTVIDEO" ]] && return
+
 	blank_buffer
 
 	echo "$(cat /sys/class/display/mode)" > /tmp/EE_LASTVIDEO
@@ -381,16 +383,22 @@ function init_app_video() {
 
 	# Set the display video to that of the emulator setting.
 	[ ! -z "${VIDEO_EMU}" ] && ${TBASH} setres.sh ${VIDEO_EMU} ${PLATFORM} # set display
+
+	touch /tmp/game.running
 }
 
 function end_app_video() {
 	local LAST_VIDEO="$(cat /tmp/EE_LASTVIDEO)"
+
+	blank_buffer
 
 	# Return to default mode
 	${TBASH} setres.sh ${LAST_VIDEO}
 
 	# Show exit splash
 	${TBASH} show_splash.sh exit
+
+	rm /tmp/EE_LASTVIDEO
 }
 
 function set_gptokeyb() {
