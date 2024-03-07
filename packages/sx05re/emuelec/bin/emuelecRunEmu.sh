@@ -485,6 +485,7 @@ else
    ret_error=${?}
 fi
 
+[[ "${@}" == *"--port-script" ]] && [[ "${ret_error}" == 1 ]] && ret_error=0
 #blank_buffer
 
 # clear terminal window
