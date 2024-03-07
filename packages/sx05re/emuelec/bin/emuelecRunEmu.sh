@@ -470,6 +470,10 @@ gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
+if [[ "${@}" == *"--port-script" ]]; then
+	RUNTHIS='${TBASH} "${ROMNAME}" ${2} ${3} ${4} --controllers="${CONTROLLERCONFIG}"'
+fi
+
 # Execute the command and try to output the results to the log file if it was not disabled.
 if [[ ${LOGEMU} == "Yes" ]]; then
    echo "Emulator Output is:" >> ${EMUELECLOG}
