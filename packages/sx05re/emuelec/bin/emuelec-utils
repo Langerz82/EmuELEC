@@ -365,6 +365,8 @@ function createMultidisc() {
 }
 
 function init_app_video() {
+	[[ -f "/tmp/EE_LASTVIDEO" ]] && return
+
 	local PLATFORM=$1
 	local ROMNAME=$2
 	local BASEROMNAME=${ROMNAME##*/}
@@ -391,6 +393,8 @@ function end_app_video() {
 
 	# Show exit splash
 	${TBASH} show_splash.sh exit
+
+  rm /tmp/EE_LASTVIDEO
 }
 
 function set_gptokeyb() {
