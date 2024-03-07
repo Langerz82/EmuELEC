@@ -11,7 +11,7 @@
 PLATFORM="${2##*-P}"
 PLATFORM="${PLATFORM%% *}"
 
-emuelec-utils init_app_video ${PLATFORM} ${1}
+emuelec-utils init_app_video ${PLATFORM} "${1}"
 
 eval /usr/bin/bash $@
 
