@@ -31,11 +31,12 @@ if [ ! -e "${DATAFOLDER}/data/stk_config.xml" ]; then
             rm "${VERSION}.zip"
             ee_console disable
             mkdir -p /storage/.config/supertuxkart/config-0.10
-            [[ ! -f "${DATAFOLDER}/supertuxkart.git" ]] && touch "${DATAFOLDER}/supertuxkart.git"
+            [[ ! -f "${DATAFOLDER}/data/supertuxkart.git" ]] && touch "${DATAFOLDER}/data/supertuxkart.git"
             
 cat > /storage/.config/supertuxkart/config-0.10/players.xml << EOF
 <?xml version="1.0"?>
 <players version="1" >
+    <current player="EmuELEC"/>
     <player name="EmuELEC" guest="false" use-frequency="0"
             icon-filename="1.png"
             unique-id="1" saved-session="false"
