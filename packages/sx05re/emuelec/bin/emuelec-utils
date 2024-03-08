@@ -388,6 +388,8 @@ function init_app_video() {
 }
 
 function end_app_video() {
+	[[ ! -f "/tmp/EE_LASTVIDEO" ]] && return
+
 	local LAST_VIDEO="$(cat /tmp/EE_LASTVIDEO)"
 
 	blank_buffer
@@ -397,6 +399,8 @@ function end_app_video() {
 
 	# Show exit splash
 	${TBASH} show_splash.sh exit
+
+	blank_buffer
 
 	rm /tmp/EE_LASTVIDEO
 }

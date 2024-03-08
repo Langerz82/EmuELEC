@@ -84,6 +84,17 @@ GAMEFOLDER="${ROMNAME//${BASEROMNAME}}"
 KILLTHIS="none"
 KILLSIGNAL="15"
 
+CONTROLLERCONFIG="${arguments#*--controllers=*}"
+echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
+
+if [[ "${@}" == *"--port-script" ]]; then
+	emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
+	RUNTHIS='${TBASH} "${1}" ${2} ${3} ${4} --controllers="${CONTROLLERCONFIG}"'
+	eval ${RUNTHIS}
+	emuelec-utils end_app_video
+	exit 0
+fi
+
 if [[ "${CORE}" == *"_32b"* ]]; then
     BIT32="yes"
     #LD_LIBRARY_PATH="/emuelec/lib32:${LD_LIBRARY_PATH}"
@@ -136,9 +147,6 @@ CLOUD_SYNC=$(get_ee_setting "${PLATFORM}.cloudsave")
 CLOUD_PID=$!
 
 emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
-
-CONTROLLERCONFIG="${arguments#*--controllers=*}"
-echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
 
 if [ -z ${LIBRETRO} ] && [ -z ${RETRORUN} ]; then
 
@@ -470,10 +478,6 @@ gptokeyb 1 ${KILLTHIS} ${VIRTUAL_KB} -killsignal ${KILLSIGNAL} &
 
 [[ "${CLOUD_SYNC}" == "1" ]] && wait ${CLOUD_PID}
 
-if [[ "${@}" == *"--port-script" ]]; then
-	RUNTHIS='${TBASH} "${ROMNAME}" ${2} ${3} ${4} --controllers="${CONTROLLERCONFIG}"'
-fi
-
 # Execute the command and try to output the results to the log file if it was not disabled.
 if [[ ${LOGEMU} == "Yes" ]]; then
    echo "Emulator Output is:" >> ${EMUELECLOG}
@@ -485,7 +489,6 @@ else
    ret_error=${?}
 fi
 
-[[ "${@}" == *"--port-script" ]] && [[ "${ret_error}" == 1 ]] && ret_error=0
 #blank_buffer
 
 # clear terminal window
