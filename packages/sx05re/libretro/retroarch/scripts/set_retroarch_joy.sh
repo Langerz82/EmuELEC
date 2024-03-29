@@ -138,5 +138,6 @@ set_pad() {
 
 }
 
+cp ${CONFIG} ${CONFIG}.jc.bak
 
 jc_get_players
