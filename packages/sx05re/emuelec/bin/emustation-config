@@ -306,12 +306,14 @@ fi
 # START FIX PLATFORM LINKS
 if [[ -d "/storage/roms/odyssey" ]]; then
   mv "/storage/roms/odyssey" "/storage/roms/odyssey2"
-
+  sed -i "s|<path>/storage/roms/odyssey</path>|<path>/storage/roms/odyssey2</path>|g" /storage/.config/emulationstation/es_systems.cfg
 fi
 
 if [[ -d "/storage/roms/sgfx" ]]; then
   mv "/storage/roms/sgfx" "/storage/roms/supergrafx"
+  sed -i "s|<path>/storage/roms/sgfx</path>|<path>/storage/roms/supergrafx</path>|g" /storage/.config/emulationstation/es_systems.cfg
 fi
+
 # END
 
 RA_CORE_OPTION="/storage/.config/retroarch/retroarch-core-options.cfg"
