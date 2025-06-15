@@ -309,4 +309,4 @@ HAS_RA_CORE_OPTION_X68K_FDD_FIX=$(cat "${RA_CORE_OPTION}" | grep px68k_save_fdd_
 HAS_RA_CORE_OPTION_X68K_HDD_FIX=$(cat "${RA_CORE_OPTION}" | grep px68k_save_hdd_path)
 [[ -z "${HAS_RA_CORE_OPTION_X68K_HDD_FIX}" ]] && echo "px68k_save_hdd_path = \"disabled\"" >> "${RA_CORE_OPTION}"
 
-exit 0
+exit 0 
