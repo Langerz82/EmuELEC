@@ -304,56 +304,8 @@ fi
 # END - SECTIONS TO WIPE PREVIOUS VERSION CONFIG DATA
 
 # START FIX PLATFORM LINKS
-
-REMOUNT_ROMS=0
-UPDATE_ES_SYSTEM=0
-MOUNT_RES=$( mount | grep "/storage/roms/odyssey " )
-if [[ ! -z "${MOUNT_RES}" ]]; then
-  MOUNT_DIR=$( cat /emuelec/logs/eemount.log | grep "/storage/roms/odyssey" | grep "[DEBUG]" | grep Binding | cut -d' ' -f4 | cut -d"'" -f2 )
-  if [[ ! -z "${MOUNT_DIR}" ]]; then
-    umount "/storage/roms/odyssey"
-    MOUNT_DIR=$( dirname ${MOUNT_DIR} )
-    mv "${MOUNT_DIR}/odyssey" "${MOUNT_DIR}/odyssey2"
-    sed -i "s|odyssey|odyssey2|g" "${MOUNT_DIR}/emuelecroms"
-    UPDATE_ES_SYSTEM=1
-    REMOUNT_ROMS=1
-  fi
-else
-  if [[ -d "/storage/roms/odyssey" ]]; then
-    mv "/storage/roms/odyssey" "/storage/roms/odyssey2"
-    UPDATE_ES_SYSTEM=1
-  fi
-fi
-[[ "${UPDATE_ES_SYSTEM}" == 1 ]] && sed -i "s|<path>/storage/roms/odyssey</path>|<path>/storage/roms/odyssey2</path>|g" /storage/.config/emulationstation/es_systems.cfg
-
-UPDATE_ES_SYSTEM=0
-MOUNT_RES=$( mount | grep "/storage/roms/sgfx " )
-if [[ ! -z "${MOUNT_RES}" ]]; then
-  MOUNT_DIR=$( cat /emuelec/logs/eemount.log | grep "/storage/roms/sgfx" | grep "[DEBUG]" | grep Binding | cut -d' ' -f4 | cut -d"'" -f2 )
-  if [[ ! -z "${MOUNT_DIR}" ]]; then
-    umount "/storage/roms/sgfx"
-    MOUNT_DIR=$( dirname ${MOUNT_DIR} )
-    mv "${MOUNT_DIR}/sgfx" "${MOUNT_DIR}/supergrafx"
-    sed -i "s|sgfx|supergrafx|g" "${MOUNT_DIR}/emuelecroms"
-    UPDATE_ES_SYSTEM=1
-    REMOUNT_ROMS=1
-  fi
-else
-  if [[ -d "/storage/roms/sgfx" ]]; then
-    mv "/storage/roms/sgfx" "/storage/roms/supergrafx"
-    UPDATE_ES_SYSTEM=1
-  fi
-fi
-[[ "${UPDATE_ES_SYSTEM}" == 1 ]] && sed -i "s|<path>/storage/roms/sgfx</path>|<path>/storage/roms/supergrafx</path>|g" /storage/.config/emulationstation/es_systems.cfg
-
-if [[ "${REMOUNT_ROMS}" == "1" ]]; then
-  # Mounts /storage/roms
-  MOUNT_HANDLER=$(get_ee_setting ee_mount.handler)
-  if [ -z "${MOUNT_HANDLER}" ]; then
-    MOUNT_HANDLER="eemount"
-  fi
-  ${MOUNT_HANDLER} &> /emuelec/logs/eemount.log
-fi
+emuelec-utils rename_rom_system "odyssey" "odyssey2"
+emuelec-utils rename_rom_system "sgfx" "supergrafx"
 
 # END
 
