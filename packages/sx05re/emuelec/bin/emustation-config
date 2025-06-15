@@ -309,9 +309,13 @@ REMOUNT_ROMS=0
 UPDATE_ES_SYSTEM=0
 MOUNT_RES=$( mount | grep "/storage/roms/odyssey " )
 if [[ ! -z "${MOUNT_RES}" ]]; then
-  umount "/storage/roms/odyssey"
-  mv "/media/USB/roms/odyssey" "/media/USB/roms/odyssey2"
-  sed -i "s|odyssey|odyssey2|g" /media/USB/roms/emuelecroms
+  MOUNT_DIR=$( cat /emuelec/logs/eemount.log | grep "/storage/roms/odyssey" | grep "[DEBUG]" | grep Binding | cut -d' ' -f4 | cut -d"'" -f2 )
+  if [[ ! -z "${MOUNT_DIR}" ]]; then
+    umount "/storage/roms/odyssey"
+    MOUNT_DIR=$( dirname ${MOUNT_DIR} )
+    mv "${MOUNT_DIR}/odyssey" "${MOUNT_DIR}/odyssey2"
+    sed -i "s|odyssey|odyssey2|g" "${MOUNT_DIR}/emuelecroms"
+  fi
   UPDATE_ES_SYSTEM=1
   REMOUNT_ROMS=1
 else
@@ -325,9 +329,13 @@ fi
 UPDATE_ES_SYSTEM=0
 MOUNT_RES=$( mount | grep "/storage/roms/sgfx " )
 if [[ ! -z "${MOUNT_RES}" ]]; then
-  umount "/storage/roms/sgfx"
-  mv "/media/USB/roms/sgfx" "/media/USB/roms/supergrafx"
-  sed -i "s|sgfx|supergrafx|g" /media/USB/roms/emuelecroms
+  MOUNT_DIR=$( cat /emuelec/logs/eemount.log | grep "/storage/roms/sgfx" | grep "[DEBUG]" | grep Binding | cut -d' ' -f4 | cut -d"'" -f2 )
+  if [[ ! -z "${MOUNT_DIR}" ]]; then
+    umount "/storage/roms/sgfx"
+    MOUNT_DIR=$( dirname ${MOUNT_DIR} )
+    mv "${MOUNT_DIR}/sgfx" "${MOUNT_DIR}/supergrafx"
+    sed -i "s|sgfx|supergrafx|g" "${MOUNT_DIR}/emuelecroms"
+  fi
   UPDATE_ES_SYSTEM=1
   REMOUNT_ROMS=1
 else
