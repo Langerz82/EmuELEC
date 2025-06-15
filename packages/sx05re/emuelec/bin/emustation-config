@@ -14,7 +14,7 @@ ESSETTINGS="/storage/.config/emulationstation/es_settings.cfg"
 
 PWDFILE="${1}"
 
-while read line; do 
+while read line; do
 
 # Extract the first part (usually username)
 FIRST="${line#*=}"  # read from = onwards
@@ -30,7 +30,7 @@ case "$line" in
         set_ee_setting wifi.key "${SECOND}"
         set_ee_setting wifi.enabled 1
         #echo "WiFi information added"
-        
+
         # Connect to WiFi
         if [[ ! -f "/storage/.cache/connman/emuelec_wifi.config" ]]; then
             batocera-config wifi enable "${FIRST}" "${SECOND}"
@@ -50,12 +50,12 @@ case "$line" in
         sed -i '/<\/config>/d' "${ESSETTINGS}"
         sed -i '/<string name="ScreenScraperPass" /d' "${ESSETTINGS}"
         sed -i '/<string name="ScreenScraperUser" /d' "${ESSETTINGS}"
-        
+
         echo "	<string name=\"ScreenScraperPass\" value=\"${SECOND}\" />" >> "${ESSETTINGS}"
         echo "	<string name=\"ScreenScraperUser\" value=\"${FIRST}\" />" >> "${ESSETTINGS}"
-        echo '</config>' >> "${ESSETTINGS}" 
+        echo '</config>' >> "${ESSETTINGS}"
         # echo "screenscraper information added"
-    fi    
+    fi
     ;;
     LANG=*)
         if [[ ! -z "${FIRST}" ]]; then
@@ -82,7 +82,7 @@ done
 # We look for themes
 umount /emuelec/themes > /dev/null 2>&1
 mkdir -p /emuelec/themes > /dev/null 2>&1
-        
+
 if [[ -d "/var/media/EEROMS/themes" ]]; then
         mount --bind /var/media/EEROMS/themes /emuelec/themes
 elif [[ -d "/storage/roms/themes" ]]; then
@@ -125,19 +125,19 @@ if [ "$EE_DEVICE" == "OdroidGoAdvance" ] || [ "$EE_DEVICE" == "GameForce" ]; the
 # For some reason the audio is being reseted to 100 at boot, so we reaply the saved settings here
 odroidgoa_utils.sh vol $(get_ee_setting "audio.volume")
 
-# Workaround for theme not displaying correctly 
+# Workaround for theme not displaying correctly
 CONDIR="/storage/.config/emulationstation/themesettings"
 CONFILE="${CONDIR}/Crystal.cfg"
 ESSETTINGS="/storage/.config/emulationstation/es_settings.cfg"
 
-if [ ! -e "${CONFILE}" ]; then 
+if [ ! -e "${CONFILE}" ]; then
     mkdir -p "${CONDIR}"
     touch "${CONFILE}"
     sed -i '/<string name="ThemeSystemView"/d' "${ESSETTINGS}"
     sed -i '/<\/config>/d' "${ESSETTINGS}"
 
     echo '<string name="ThemeSystemView" value="small panel" />' >> "${ESSETTINGS}"
-    
+
     if [ -e "/dev/input/by-path/platform-odroidgo2-joypad-joystick" ]; then
         echo "subset.ratio=43" > "${CONFILE}"
         echo '<string name="subset.ratio" value="43" />' >> "${ESSETTINGS}"
@@ -145,7 +145,7 @@ if [ ! -e "${CONFILE}" ]; then
         echo "subset.ratio=169" > "${CONFILE}"
         echo '<string name="subset.ratio" value="169" />' >> "${ESSETTINGS}"
     fi
-    echo '</config>' >> "${ESSETTINGS}" 
+    echo '</config>' >> "${ESSETTINGS}"
 fi
 
 else
@@ -173,10 +173,10 @@ CFG="${ESDIR}/es_systems.cfg"
 if [[ "${CVER}" != "${NVER}" ]]; then
     mv "/storage/.config/emuelec/ports/gamelist.xml" "/storage/.config/emuelec/ports/gamelist.xml.${BUILDATE}.bak"
     cp -rf "/usr/bin/ports/gamelist.xml" "/storage/.config/emuelec/ports/gamelist.xml"
-    
+
     mv "${ESDIR}/es_features.cfg" "${ESDIR}/es_features.cfg.${BUILDATE}.bak"
     cp -rf "/usr/config/emulationstation/es_features.cfg" "${ESDIR}/es_features.cfg"
-    
+
     cp -f "${CFG}" "${OLDCFG}"
     cp -f "/usr/config/emulationstation/es_systems.cfg" "${CFG}"
 
@@ -195,7 +195,7 @@ if [[ "${CVER}" != "${NVER}" ]]; then
             -s '//systemList/system[last()]' -t elem -n 'command' -v "emuelecRunEmu.sh %ROM% -P%SYSTEM% --core=%CORE% --emulator=%EMULATOR% --controllers=\"%CONTROLLERSCONFIG%\""\
             -s '//systemList/system[last()]' -t elem -n 'platform' -v 'nds'\
             -s '//systemList/system[last()]' -t elem -n 'theme' -v 'nds'\
-            ${CFG} 
+            ${CFG}
     fi
 ) &
 
@@ -211,13 +211,13 @@ if [[ -e "/storage/roms/bios/pico-8" ]]; then
     rm -rf /storage/roms/bios/pico-8
     chmod +x /emuelec/bin/pico-8/pico8_dyn
     touch /storage/roms/pico-8/splore.p8
-fi 
+fi
 
 # If Pico-8 binary does not exist remove the splore.p8
 if [[ ! -e "/emuelec/bin/pico-8/pico8_dyn" ]]; then
-    rm /storage/roms/pico-8/splore.p8 > /dev/null 2>&1 
+    rm /storage/roms/pico-8/splore.p8 > /dev/null 2>&1
 else
-    touch /storage/roms/pico-8/splore.p8 > /dev/null 2>&1 
+    touch /storage/roms/pico-8/splore.p8 > /dev/null 2>&1
 fi
 ) &
 
@@ -230,23 +230,23 @@ for ecwolf in SOD sod WL6 wl6 N3D n3d SD2 sd2 SD3 sd3; do
     if find ${ecwolfdir} -name *.${ecwolf} -maxdepth 1 | read; then
     case ${ecwolf} in
         "SOD"|"sod")
-            touch "${ecwolfdir}/games/Spear of Destiny.${ecwolf}" > /dev/null 2>&1 
+            touch "${ecwolfdir}/games/Spear of Destiny.${ecwolf}" > /dev/null 2>&1
         ;;
         "SD2"|"sd2")
-            touch "${ecwolfdir}/games/Spear of Destiny SD2.${ecwolf}" > /dev/null 2>&1 
+            touch "${ecwolfdir}/games/Spear of Destiny SD2.${ecwolf}" > /dev/null 2>&1
         ;;
         "SD3"|"sd3")
-            touch "${ecwolfdir}/games/Spear of Destiny SD3.${ecwolf}" > /dev/null 2>&1 
+            touch "${ecwolfdir}/games/Spear of Destiny SD3.${ecwolf}" > /dev/null 2>&1
         ;;
         "WL6"|"wl6")
-            touch "${ecwolfdir}/games/Wolfenstein 3D.${ecwolf}" > /dev/null 2>&1 
+            touch "${ecwolfdir}/games/Wolfenstein 3D.${ecwolf}" > /dev/null 2>&1
         ;;
         "N3D"|"n3d")
-            touch "${ecwolfdir}/games/Super 3D Noah's Ark.${ecwolf}" > /dev/null 2>&1 
+            touch "${ecwolfdir}/games/Super 3D Noah's Ark.${ecwolf}" > /dev/null 2>&1
         ;;
     esac
     else
-        rm ${ecwolfdir}/games/*.${ecwolf} > /dev/null 2>&1 
+        rm ${ecwolfdir}/games/*.${ecwolf} > /dev/null 2>&1
     fi
 done
 
@@ -257,7 +257,7 @@ PWDFILE="/flash/ee_defaults.txt"
 [ -f "${PWDFILE}" ] && check_pwd ${PWDFILE}
 
 # The mounting logic for ports_scripts is now handled in the mount handler
-# # Find and mount the ports directory 
+# # Find and mount the ports directory
 # if [ -L "/storage/roms" ]; then
 #     LINK=$(readlink /storage/roms)
 # else
@@ -278,7 +278,7 @@ wait
 # We do not care if BT scanning finishes before ES starts
 BTENABLED=$(get_ee_setting ee_bluetooth.enabled)
 if [[ "$BTENABLED" == "1" ]]; then
-    # Search for bluetooth gamepads while ES loads. 
+    # Search for bluetooth gamepads while ES loads.
     (
         batocera-bluetooth trust
     ) &
@@ -304,14 +304,47 @@ fi
 # END - SECTIONS TO WIPE PREVIOUS VERSION CONFIG DATA
 
 # START FIX PLATFORM LINKS
-if [[ -d "/storage/roms/odyssey" ]]; then
-  mv "/storage/roms/odyssey" "/storage/roms/odyssey2"
-  sed -i "s|<path>/storage/roms/odyssey</path>|<path>/storage/roms/odyssey2</path>|g" /storage/.config/emulationstation/es_systems.cfg
-fi
 
-if [[ -d "/storage/roms/sgfx" ]]; then
-  mv "/storage/roms/sgfx" "/storage/roms/supergrafx"
-  sed -i "s|<path>/storage/roms/sgfx</path>|<path>/storage/roms/supergrafx</path>|g" /storage/.config/emulationstation/es_systems.cfg
+REMOUNT_ROMS=0
+UPDATE_ES_SYSTEM=0
+MOUNT_RES=$( mount | grep "/storage/roms/odyssey " )
+if [[ ! -z "${MOUNT_RES}" ]]; then
+  umount "/storage/roms/odyssey"
+  mv "/media/USB/roms/odyssey" "/media/USB/roms/odyssey2"
+  sed -i "s|odyssey|odyssey2|g" /media/USB/roms/emuelecroms
+  UPDATE_ES_SYSTEM=1
+  REMOUNT_ROMS=1
+else
+  if [[ -d "/storage/roms/odyssey" ]]; then
+    mv "/storage/roms/odyssey" "/storage/roms/odyssey2"
+    UPDATE_ES_SYSTEM=1
+  fi
+fi
+[[ "${UPDATE_ES_SYSTEM}" == 1 ]] && sed -i "s|<path>/storage/roms/odyssey</path>|<path>/storage/roms/odyssey2</path>|g" /storage/.config/emulationstation/es_systems.cfg
+
+UPDATE_ES_SYSTEM=0
+MOUNT_RES=$( mount | grep "/storage/roms/sgfx " )
+if [[ ! -z "${MOUNT_RES}" ]]; then
+  umount "/storage/roms/sgfx"
+  mv "/media/USB/roms/sgfx" "/media/USB/roms/supergrafx"
+  sed -i "s|sgfx|supergrafx|g" /media/USB/roms/emuelecroms
+  UPDATE_ES_SYSTEM=1
+  REMOUNT_ROMS=1
+else
+  if [[ -d "/storage/roms/sgfx" ]]; then
+    mv "/storage/roms/sgfx" "/storage/roms/supergrafx"
+    UPDATE_ES_SYSTEM=1
+  fi
+fi
+[[ "${UPDATE_ES_SYSTEM}" == 1 ]] && sed -i "s|<path>/storage/roms/sgfx</path>|<path>/storage/roms/supergrafx</path>|g" /storage/.config/emulationstation/es_systems.cfg
+
+if [[ "${REMOUNT_ROMS}" == "1" ]]; then
+  # Mounts /storage/roms
+  MOUNT_HANDLER=$(get_ee_setting ee_mount.handler)
+  if [ -z "${MOUNT_HANDLER}" ]; then
+    MOUNT_HANDLER="eemount"
+  fi
+  ${MOUNT_HANDLER} &> /emuelec/logs/eemount.log
 fi
 
 # END
