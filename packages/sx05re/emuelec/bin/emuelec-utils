@@ -6,6 +6,39 @@
 # Source predefined functions and variables
 . /etc/profile
 
+function rename_rom_system()
+{
+    REMOUNT_ROMS=0
+    UPDATE_ES_SYSTEM=0
+    MOUNT_RES=$( mount | grep "/storage/roms/${1} " )
+    if [[ ! -z "${MOUNT_RES}" ]]; then
+      MOUNT_DIR=$( cat /emuelec/logs/eemount.log | grep "/storage/roms/${1}" | grep "[DEBUG]" | grep Binding | cut -d' ' -f4 | cut -d"'" -f2 )
+      if [[ ! -z "${MOUNT_DIR}" ]]; then
+        umount "/storage/roms/${1}"
+        rmdir "/storage/roms/${1}"
+        MOUNT_DIR=$( dirname ${MOUNT_DIR} )
+        mv "${MOUNT_DIR}/${1}" "${MOUNT_DIR}/${2}"
+        sed -i "s|${1}|${2}|g" "${MOUNT_DIR}/emuelecroms"
+        UPDATE_ES_SYSTEM=1
+        REMOUNT_ROMS=1
+      fi
+    else
+      if [[ -d "/storage/roms/${1}" ]]; then
+        mv "/storage/roms/${1}" "/storage/roms/${2}"
+        UPDATE_ES_SYSTEM=1
+      fi
+    fi
+    [[ "${UPDATE_ES_SYSTEM}" == 1 ]] && sed -i "s|<path>/storage/roms/${1}</path>|<path>/storage/roms/${2}</path>|g" /storage/.config/emulationstation/es_systems.cfg
+    if [[ "${REMOUNT_ROMS}" == "1" ]]; then
+        # Mounts /storage/roms
+        MOUNT_HANDLER=$(get_ee_setting ee_mount.handler)
+        if [ -z "${MOUNT_HANDLER}" ]; then
+            MOUNT_HANDLER="eemount"
+        fi
+        ${MOUNT_HANDLER} &> /emuelec/logs/eemount.log
+    fi
+}
+
 function set_rotation()
 {
   local rotate=$1
