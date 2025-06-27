@@ -13,7 +13,8 @@ export PULSE_RUNTIME_PATH=/run/pulse
     RR_PA_TSCHED="true"
     RR_AUDIO_VOLUME="$(get_ee_setting audio.volume)"
     RR_AUDIO_BACKEND="PulseAudio"
-	
+
+[[ -z "${RR_AUDIO_VOLUME}" ]]	&& RR_AUDIO_VOLUME="100"
 
 pulseaudio_sink_load() {
 
