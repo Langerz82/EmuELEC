@@ -11,7 +11,7 @@ export PULSE_RUNTIME_PATH=/run/pulse
 	echo "Set-Audio: Using audio device ${RR_AUDIO_DEVICE}"
 	RR_PA_UDEV="false"
     RR_PA_TSCHED="true"
-    RR_AUDIO_VOLUME="100"
+    RR_AUDIO_VOLUME="$(get_ee_setting audio.volume)"
     RR_AUDIO_BACKEND="PulseAudio"
 	
 
@@ -158,3 +158,10 @@ case "${1}" in
 	;;
 esac
 		set_SDL_audiodriver
+
+if [ "$EE_DEVICE" == "OdroidGoAdvance" ] || [ "$EE_DEVICE" == "GameForce" ]; then
+	# For some reason the audio is being reseted to 100 at boot, so we reaply the saved settings here
+	odroidgoa_utils.sh vol ${RR_AUDIO_VOLUME}
+else
+	amixer set 'DAC Digital' "${RR_AUDIO_VOLUME}%"
+fi
