@@ -360,7 +360,7 @@ else
     ROMNAME_SHADER=${ROMNAME}
 fi
 
-RUNTHIS='${RABIN} ${VERBOSE} -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
+RUNTHIS='${RABIN} ${VERBOSE} $(cat /emuelec/configs/RA_ARGS) -L /tmp/cores/${EMU}.so --config ${RACONF} "${ROMNAME}"'
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 
 if [[ "${arguments}" == *"-state_slot"* ]]; then
