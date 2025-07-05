@@ -201,6 +201,13 @@ if [[ "${CVER}" != "${NVER}" ]]; then
 
 fi
 
+# START FIX PLATFORM LINKS
+if [[ "${CVER}" != "${NVER}" ]]; then    
+    emuelec-utils rename_rom_system "odyssey" "odyssey2"
+    emuelec-utils rename_rom_system "sgfx" "supergrafx"
+fi
+# END
+
 (
 # Pico-8 check
 # If there is a new version copy the files
@@ -302,12 +309,6 @@ if [[ ! -f "$FRAMEBUFFER_VERSION" ]]; then
 	echo "2" > "${FRAMEBUFFER_VERSION}"
 fi
 # END - SECTIONS TO WIPE PREVIOUS VERSION CONFIG DATA
-
-# START FIX PLATFORM LINKS
-emuelec-utils rename_rom_system "odyssey" "odyssey2"
-emuelec-utils rename_rom_system "sgfx" "supergrafx"
-
-# END
 
 RA_CORE_OPTION="/storage/.config/retroarch/retroarch-core-options.cfg"
 HAS_RA_CORE_OPTION_X68K_FDD_FIX=$(cat "${RA_CORE_OPTION}" | grep px68k_save_fdd_path)
