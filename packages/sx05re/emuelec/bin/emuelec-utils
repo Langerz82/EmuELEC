@@ -19,8 +19,9 @@ function rename_rom_system()
         MOUNT_DIR=$( dirname ${MOUNT_DIR} )
         mv "${MOUNT_DIR}/${1}" "${MOUNT_DIR}/${2}"
         sed -i "s|${1}|${2}|g" "${MOUNT_DIR}/emuelecroms"
+        mkdir -p "/storage/roms/${2}"
+        mount "${MOUNT_DIR}/${2}" "/storage/roms/${2}"
         UPDATE_ES_SYSTEM=1
-        REMOUNT_ROMS=1
       fi
     else
       if [[ -d "/storage/roms/${1}" ]]; then
@@ -29,14 +30,6 @@ function rename_rom_system()
       fi
     fi
     [[ "${UPDATE_ES_SYSTEM}" == 1 ]] && sed -i "s|<path>/storage/roms/${1}</path>|<path>/storage/roms/${2}</path>|g" /storage/.config/emulationstation/es_systems.cfg
-    if [[ "${REMOUNT_ROMS}" == "1" ]]; then
-        # Mounts /storage/roms
-        MOUNT_HANDLER=$(get_ee_setting ee_mount.handler)
-        if [ -z "${MOUNT_HANDLER}" ]; then
-            MOUNT_HANDLER="eemount"
-        fi
-        ${MOUNT_HANDLER} &> /emuelec/logs/eemount.log
-    fi
 }
 
 function set_rotation()
