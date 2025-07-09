@@ -30,7 +30,7 @@ event_wake() {
   local KEY=$(get_ee_setting wifi.key)
   local ENABLED=$(get_ee_setting wifi.enabled)
 
-  if [[ "${ENABLED}" == "1" ]];
+  if [[ "${ENABLED}" == "1" ]]; then
     batocera-config wifi enable "${SSID}" "${KEY}"
   fi
 }
