@@ -5,8 +5,8 @@
 # Modifications by Shanti Gilbert (https://github.com/shantigilbert)
 # 2025-present Mod by DiegroSan
 
-# 12/07/2019 use mpv for all splash
-# 19/01/2020 use ffplay for all splash
+# 12/07/2019 use mpv for all splash 
+# 19/01/2020 use ffplay for all splash 
 # 06/02/2020 move splash to roms folder and add global splash support
 
 . /etc/profile
@@ -41,7 +41,7 @@ case ${PLATFORM} in
    PLATFORM="arcade"
   ;;
  "retropie"|"setup")
-   # fbterm does not like the splash screen
+   # fbterm does not like the splash screen 
    exit 0
   ;;
 esac
@@ -49,7 +49,7 @@ esac
 MODE=`get_resolution`
 
 SPLASHDIR="/storage/roms/splash"
-
+  
 if [ "${ACTION_TYPE}" == "intro" ] || [ "${ACTION_TYPE}" == "exit" ]; then
     SPLASH=${DEFAULTSPLASH}
     if [[ "${MODE}" == *"x"* ]]; then
@@ -64,7 +64,7 @@ if [ "${ACTION_TYPE}" == "intro" ] || [ "${ACTION_TYPE}" == "exit" ]; then
         CUSTOM_EXIT_IMAGE=$(get_ee_setting ee_customexitsplashimage)
         EXIT_VIDEO_ENABLED=$(get_ee_setting ee_exitvideo.enabled)
         EXIT_IMAGE_ENABLED=$(get_ee_setting ee_exitsplashimage.enabled)
-
+        
         if [ "${CUSTOM_EXIT_VIDEO_ENABLED}" == "1" ] && [ -n "${CUSTOM_EXIT_VIDEO}" ] && [ -f "${CUSTOM_EXIT_VIDEO}" ]; then
             SPLASH="${CUSTOM_EXIT_VIDEO}"
         elif [ "${CUSTOM_EXIT_IMAGE_ENABLED}" == "1" ] && [ -n "${CUSTOM_EXIT_IMAGE}" ] && [ -f "${CUSTOM_EXIT_IMAGE}" ]; then
@@ -144,7 +144,7 @@ elif [ "${ACTION_TYPE}" == "gameloading" ]; then
 
         SPLASH5="${SPLASHDIR}/launching.png"
         SPLASHVID5="${SPLASHDIR}/launching.mp4"
-
+        
         if [ -f "${SPLASHVID1}" ]; then
             SPLASH="${SPLASHVID1}"
         elif [ -f "${SPLASH1}" ]; then
@@ -205,11 +205,11 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
                    if [[ -f "tmp/Plibretro.p" ]]; then
                      ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} "${SPLASH}" > /dev/null 2>&1
                    else
-                     ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 & sleep 3
+                     ${PLAYER} -fs ${SIZE} -vf scale=${SCALE} -autoexit "${SPLASH}" > /dev/null 2>&1 & sleep 3 
                    fi
                 fi
             fi
-        fi
+        fi 
 else
     # Display intro video
     RND=$(get_ee_setting "ee_randombootvideo.enabled" == "1")
