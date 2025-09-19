@@ -154,8 +154,9 @@ CLOUD_PID=$!
 
 # Loading start
 rm "tmp/Plibretro.p"
-[[ "${LIBRETRO}" = "yes" ]] && touch "tmp/Plibretro.p" && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}" & 
-[[ "${LIBRETRO}" != "yes" ]] && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
+[[ "${LIBRETRO}" = "yes" ]] && touch "tmp/Plibretro.p"
+
+emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
 echo "${CONTROLLERCONFIG}" | tr -d '"' > "/tmp/controllerconfig.txt"
@@ -541,7 +542,7 @@ fi
         reset > /dev/tty0 < /dev/null 2>&1
         reset > /dev/tty1 < /dev/null 2>&1
         reset > /dev/console < /dev/null 2>&1
-        
+
 # END loading
 [[ "${LIBRETRO}" = "yes" ]] && ${TBASH} show_splash.sh "stopplayer"
 
