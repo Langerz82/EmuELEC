@@ -152,10 +152,6 @@ CLOUD_SYNC=$(get_ee_setting "${PLATFORM}.cloudsave")
 [[ "${CLOUD_SYNC}" == "1" ]] && ra_rclone.sh get "${PLATFORM}" "${ROMNAME}" &
 CLOUD_PID=$!
 
-# Loading start
-rm "tmp/Plibretro.p"
-[[ "${LIBRETRO}" = "yes" ]] && touch "tmp/Plibretro.p"
-
 emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 
 CONTROLLERCONFIG="${arguments#*--controllers=*}"
