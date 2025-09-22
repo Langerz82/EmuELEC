@@ -132,25 +132,26 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
 
     if is_image "${SPLASH}"; then
       if [ "${have_mpv}" -eq 1 ]; then
-        ${PLAYER_IMG} --fullscreen --no-keepaspect --vf="${MPV_VF}" --image-display-duration=${DURATION} "${SPLASH}" >/dev/null 2>&1
+        ${PLAYER_IMG} --fullscreen --no-keepaspect --vf="${MPV_VF}" "${SPLASH}" >/dev/null 2>&1 &
       else
-        ffplay -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -t ${DURATION} -loop 1 -framerate 1 -i "${SPLASH}" >/dev/null 2>&1
+        ffplay -fs -loglevel error -nostats -vf "${FILTER_FILL}" -t ${DURATION} -i "${SPLASH}" >/dev/null 2>&1 &
       fi
     elif is_video "${SPLASH}"; then
       if [ -n "${DURATION}" ] && [ "${DURATION}" -gt 0 ]; then
         if [ "${PLAYER_VID}" = "ffplay" ]; then
-          ${PLAYER_VID} -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -t ${DURATION} -i "${SPLASH}" >/dev/null 2>&1
+          ${PLAYER_VID} -fs -loglevel error -nostats -vf "${FILTER_FILL}"  -i "${SPLASH}" >/dev/null 2>&1 &
         else
-          ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" --length=${DURATION} "${SPLASH}" >/dev/null 2>&1
+          ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" "${SPLASH}" >/dev/null 2>&1 &
         fi
       else
         if [ "${PLAYER_VID}" = "ffplay" ]; then
-          ${PLAYER_VID} -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1
+          ${PLAYER_VID} -fs -loglevel error -nostats -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1 &
         else
-          ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" "${SPLASH}" >/dev/null 2>&1
+          ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" "${SPLASH}" >/dev/null 2>&1 &
         fi
       fi
     fi
+		echo $! > /tmp/splash_pid
   fi
 else
   RND="$(get_ee_setting ee_randombootvideo.enabled)"

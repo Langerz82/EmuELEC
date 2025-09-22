@@ -465,12 +465,14 @@ function init_app_video() {
 	local VIDEO_EMU=$(get_ee_setting nativevideo "${PLATFORM}" "${BASEROMNAME}")
 	[[ -z "$VIDEO_EMU" ]] && VIDEO_EMU=$(cat /tmp/EE_LASTVIDEO)
 
+	# Set the display video to that of the emulator setting.
+	[ ! -z "${VIDEO_EMU}" ] && ${TBASH} setres.sh "${VIDEO_EMU}" "${PLATFORM}" "${BASEROMNAME}" # set display
+
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
 	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
 
-	# Set the display video to that of the emulator setting.
-	[ ! -z "${VIDEO_EMU}" ] && ${TBASH} setres.sh "${VIDEO_EMU}" "${PLATFORM}" "${BASEROMNAME}" # set display
+	${TBASH} emuelecSplashWatcher.sh
 }
 
 function end_app_video() {
