@@ -17,7 +17,7 @@ ROMNAME="${1}"
 
 init_game
 [[ ! "$@" == "emuelecRunEmu.sh"* ]] && echo $$ > /tmp/emuelecRun_pid
-emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
+[[ ! "$@" == "emuelecRunEmu.sh"* ]] && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 
 "$@"
 

@@ -470,15 +470,17 @@ function init_app_video() {
 
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
-	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
+	show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
 
-	${TBASH} emuelecSplashWatcher.sh
+	emuelecSplashWatcher.sh &
 }
 
 function end_app_video() {
 	local LAST_VIDEO="$(cat /tmp/EE_LASTVIDEO)"
 
 	[[ ! -f "/tmp/EE_LASTVIDEO" ]] && return
+
+	pkill emuelecSplashWa
 
 	# Return to default mode
 	${TBASH} setres.sh ${LAST_VIDEO}

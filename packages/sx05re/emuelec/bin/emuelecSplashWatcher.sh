@@ -25,7 +25,10 @@ while true; do
 		fi
 		if [[ ! " ${ignore_list[*]} " == *${LAST_PID_NAME}* ]]; then
 			ACCESSING_FB=$( lsof | grep -e "^${LAST_PID}.*$" | grep -e "/dev/fb[0-3]*" )
-			[[ ! -z "${ACCESSING_FB}" ]] && kill -9 ${SPLASH_PID} && exit 0
+			if [[ ! -z "${ACCESSING_FB}" ]]; then
+				echo "killing ${SPLASH_PID}"
+				kill -9 ${SPLASH_PID} && exit 0
+			fi
 		fi
 	done < /tmp/ee_processes
 	sleep 0.1
