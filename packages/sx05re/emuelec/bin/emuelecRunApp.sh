@@ -16,7 +16,7 @@ PLATFORM="${PLATFORM%% *}"  # until a space is found
 ROMNAME="${1}"
 
 init_game
-[[ ! "$@" == "emuelecRunEmu.sh"* ]] && echo $$ > /tmp/emuelecRun_pid
+[[ ! "$@" == "emuelecRunEmu.sh"* ]] && echo $$ > /tmp/emuelecRun.pid
 [[ ! "$@" == "emuelecRunEmu.sh"* ]] && emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 
 "$@"

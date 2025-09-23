@@ -154,7 +154,7 @@ CLOUD_PID=$!
 
 # Loading start
 rm "tmp/Plibretro.p"
-echo $$ > /tmp/emuelecRun_pid
+echo $$ > /tmp/emuelecRun.pid
 emuelec-utils init_app_video "${PLATFORM}" "${ROMNAME}"
 
 CONTROLLERCONFIG="${arguments#*--controllers=*}"

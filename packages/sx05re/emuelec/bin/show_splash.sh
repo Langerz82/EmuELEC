@@ -175,9 +175,9 @@ SIZE=" -x ${RES[0]} -y ${RES[1]}"
 if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]]; then
     if [ "${ACTION_TYPE}" != "intro" ]; then
         if [ "${SS_DEVICE}" == 1 ]; then
-            ${PLAYER} -t 10 -autoexit "${SPLASH}" > /dev/null 2>&1 &
+            ${PLAYER} -t 10 -autoexit "${SPLASH}" > /dev/null 2>&1
         else
-            ${PLAYER} -fs ${SIZE} -t 10 -autoexit "${SPLASH}" > /dev/null 2>&1 &
+            ${PLAYER} -fs ${SIZE} -t 10 -autoexit "${SPLASH}" > /dev/null 2>&1
         fi
 				echo $! > /tmp/splash_pid 
     fi 

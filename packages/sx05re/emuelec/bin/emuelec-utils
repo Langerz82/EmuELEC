@@ -470,10 +470,14 @@ function init_app_video() {
 
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
-	show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
+	if [[ "${SPL}" == 1 ]]; then
+		show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}" &
+		echo $! > /tmp/splash.pid
+		sleep 1
 
-	emuelec-utils watch_splash &
-	echo $! >> /tmp/watch_splash.pid
+		emuelec-utils watch_splash &
+		echo $! > /tmp/watch_splash.pid
+	fi
 }
 
 function end_app_video() {
@@ -493,8 +497,8 @@ function end_app_video() {
 }
 
 function watch_splash() {
-	SPLASH_PID=$(cat /tmp/splash_pid)
-	PID=$(cat /tmp/emuelecRun_pid)
+	SPLASH_PID=$(cat /tmp/splash.pid)
+	PID=$(cat /tmp/emuelecRun.pid)
 
 	[[ -z "${SPLASH_PID}" ]] && exit 0
 	[[ -z "${PID}" ]] && exit 0
