@@ -472,7 +472,8 @@ function init_app_video() {
 	local SPL=$(get_ee_setting ee_splash.enabled)
 	show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
 
-	emuelecSplashWatcher.sh &
+	emuelec-utils watch_splash &
+	echo $! >> /tmp/watch_splash.pid
 }
 
 function end_app_video() {
@@ -480,7 +481,7 @@ function end_app_video() {
 
 	[[ ! -f "/tmp/EE_LASTVIDEO" ]] && return
 
-	pkill emuelecSplashWa
+	kill -9 $( cat /tmp/watch_splash.pid )
 
 	# Return to default mode
 	${TBASH} setres.sh ${LAST_VIDEO}
@@ -489,6 +490,42 @@ function end_app_video() {
 	${TBASH} show_splash.sh exit
 
 	rm /tmp/EE_LASTVIDEO
+}
+
+function watch_splash() {
+	SPLASH_PID=$(cat /tmp/splash_pid)
+	PID=$(cat /tmp/emuelecRun_pid)
+
+	[[ -z "${SPLASH_PID}" ]] && exit 0
+	[[ -z "${PID}" ]] && exit 0
+
+	pgrep -P ${PID} > /tmp/ee_processes
+
+	ignore_list=(
+		"/usr/bin/gptokeyb"
+		"/usr/bin/bash"
+		"/usr/bin/sh"
+	)
+
+	while true; do
+		while read line; do
+			LAST_PROCESS=$(lsof | grep -e "^${line}.*$" | tail -n 1 )
+			LAST_PID=$( echo "${LAST_PROCESS}" | cut -f1 )
+			LAST_PID_NAME=$( echo "${LAST_PROCESS}" | cut -f2 )
+			if [[ "/usr/bin/bash" == *${LAST_PID_NAME}* ]] || [[ "/usr/bin/sh" == *${LAST_PID_NAME}* ]]; then
+				pgrep -P ${LAST_PID} > /tmp/ee_processes
+				break
+			fi
+			if [[ ! " ${ignore_list[*]} " == *${LAST_PID_NAME}* ]]; then
+				ACCESSING_FB=$( lsof | grep -e "^${LAST_PID}.*$" | grep -e "/dev/fb[0-3]*" )
+				if [[ ! -z "${ACCESSING_FB}" ]]; then
+					echo "killing ${SPLASH_PID}"
+					kill -9 ${SPLASH_PID} && return
+				fi
+			fi
+		done < /tmp/ee_processes
+		sleep 0.01
+	done	
 }
 
 function set_gptokeyb() {
