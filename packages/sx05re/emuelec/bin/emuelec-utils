@@ -484,6 +484,8 @@ function end_app_video() {
 	# Show exit splash
 	${TBASH} show_splash.sh exit
 
+  blank_buffer
+
 	rm /tmp/EE_LASTVIDEO
 }
 
