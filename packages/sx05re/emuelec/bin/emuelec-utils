@@ -508,7 +508,8 @@ function watch_splash() {
 	[[ -z "${SPLASH_PID}" ]] && exit 0
 	[[ -z "${PID}" ]] && exit 0
 
-	pgrep -P ${PID} > /tmp/ee_processes
+	mkdir -p /tmp/watch_splash
+	pgrep -P ${PID} > /tmp/watch_splash/ee_processes
 
 	ignore_list=(
 		"/usr/bin/gptokeyb"
@@ -522,18 +523,18 @@ function watch_splash() {
 			LAST_PID=$( echo "${LAST_PROCESS}" | cut -f1 )
 			LAST_PID_NAME=$( echo "${LAST_PROCESS}" | cut -f2 )
 			if [[ "/usr/bin/bash" == *${LAST_PID_NAME}* ]] || [[ "/usr/bin/sh" == *${LAST_PID_NAME}* ]]; then
-				pgrep -P ${LAST_PID} > /tmp/ee_processes
-				break
+				NEW_PROCESSES=$( pgrep -P ${LAST_PID} )
+				[[ ! -z "${NEW_PROCESSES}" ]] && echo "${NEW_PROCESSES}" > /tmp/watch_splash/ee_processes && break
 			fi
 			if [[ ! " ${ignore_list[*]} " == *${LAST_PID_NAME}* ]]; then
 				ACCESSING_FB=$( lsof | grep -e "^${LAST_PID}.*$" | grep -e "/dev/fb[0-3]*" )
 				if [[ ! -z "${ACCESSING_FB}" ]]; then
-          echo "splash async waiting on process: ${LAST_PID}" >> /emuelec/logs/emuelec.log
+          echo "splash async waiting on process: ${LAST_PID_NAME}" | tee -a /emuelec/logs/emuelec.log
           echo "killing ${SPLASH_PID}"
 					kill -9 ${SPLASH_PID} && return
 				fi
 			fi
-		done < /tmp/ee_processes
+		done < /tmp/watch_splash/ee_processes
 		sleep 0.01
 	done
 }
