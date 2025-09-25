@@ -471,12 +471,17 @@ function init_app_video() {
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
 	if [[ "${SPL}" == 1 ]]; then
-		show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}" &
-		echo $! > /tmp/splash.pid
-		sleep 1
+		local SPLASHASYNC=$(get_ee_setting ee_splash_async.enabled)
+		if [[ "${SPLASHASYNC}" == "1" ]]; then
+			show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}" &
+			echo $! > /tmp/splash.pid
+			sleep 1
 
-		emuelec-utils watch_splash &
-		echo $! > /tmp/watch_splash.pid
+			emuelec-utils watch_splash &
+			echo $! > /tmp/watch_splash.pid
+		else
+			show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
+		fi
 	fi
 }
 
