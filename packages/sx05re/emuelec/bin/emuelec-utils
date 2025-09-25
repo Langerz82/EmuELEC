@@ -13,7 +13,7 @@ function set_rotation()
 
   if [[ "${emulator}" == "libretro" ]]; then
 		set_ra_setting "video_rotation" "${rotate}"
-		return		
+		return
   fi
 
   if [[ "${emulator}" == "retrorun" ]]; then
@@ -48,7 +48,7 @@ function killall_midi()
 	pkill -9 timidity
   pkill -9 mt32d
   pkill -9 fluidsynth
-	
+
 }
 
 function set_midi_source()
@@ -61,7 +61,7 @@ function set_midi_source()
   [[ "${midi_emulator}" == "retrorun" ]] && return
 
   local midi_output=OFF
-  
+
   case ${midi_source} in
     fluidsynth)
       fluidsynth -is /storage/roms/bios/sc/SC-55.sf2 &
@@ -205,16 +205,16 @@ function ee_cloud_backup() {
 # Creates a cloud backup of current configurations using rclone
     RCLONECONF="/emuelec/configs/rclone/rclone.conf"
     EESYNCCFG="/emuelec/configs/rclone/ee_cloud_sync.cfg"
-    
+
     if [ -e "${EESYNCCFG}" ]; then
         . "${EESYNCCFG}"
     fi
-    
+
     [ -z "${EE_SYNC_REMOTE}" ] && EE_SYNC_REMOTE="EmuELEC_Remote"
     [ -z "${EE_SYNC_PATH}" ] && EE_SYNC_PATH="EmuELEC_Backup"
 
     [ -z "${2}" ] && systemctl stop emustation
-    
+
     # We need to check if rclone.conf exists and its configured correctly, else show error
     if [ -e "${RCLONECONF}" ]; then
         # in case this file was created in windows, we need to convert it
@@ -229,8 +229,8 @@ function ee_cloud_backup() {
         systemctl start emustation
         exit 1;
     fi
-        
-   	case "${1}" in 
+
+   	case "${1}" in
     "backup")
         # we first create a regular backup
         echo "emuelec-utils ee_backup backup no" > /tmp/cloud.sh
@@ -244,12 +244,12 @@ function ee_cloud_backup() {
         echo "emuelec-utils ee_backup restore no" >> /tmp/cloud.sh
     ;;
 	esac
-    echo "echo \"Done!...Press 'Select' or choose 'Close' to continue!\"" >> /tmp/cloud.sh    
+    echo "echo \"Done!...Press 'Select' or choose 'Close' to continue!\"" >> /tmp/cloud.sh
     chmod +x /tmp/cloud.sh
     text_viewer -s /tmp/cloud.sh -t "EmuELEC cloud sync, please wait!..."
     rm /tmp/cloud.sh > /dev/null 2>&1
-    
-    if [ "${1}" == "restore" ]; then 
+
+    if [ "${1}" == "restore" ]; then
         systemctl reboot
     else
         [ -z "${2}" ] && systemctl start emustation
@@ -257,7 +257,7 @@ function ee_cloud_backup() {
 }
 
 function filemanager() {
-# runs the file manager script, might be outdated. 
+# runs the file manager script, might be outdated.
 	/usr/bin/scripts/setup/file_manager.sh
 }
 
@@ -414,7 +414,7 @@ function unmount_all () {
 }
 
 function createMultidisc() {
-# Creates a multidisc m3u file, used in ES. 
+# Creates a multidisc m3u file, used in ES.
   local ROMNAME="$1"
 
   local BASEROMNAME="${ROMNAME##*/}"
@@ -528,13 +528,14 @@ function watch_splash() {
 			if [[ ! " ${ignore_list[*]} " == *${LAST_PID_NAME}* ]]; then
 				ACCESSING_FB=$( lsof | grep -e "^${LAST_PID}.*$" | grep -e "/dev/fb[0-3]*" )
 				if [[ ! -z "${ACCESSING_FB}" ]]; then
-					echo "killing ${SPLASH_PID}"
+          echo "splash async waiting on process: ${LAST_PID}" >> /emuelec/logs/emuelec.log
+          echo "killing ${SPLASH_PID}"
 					kill -9 ${SPLASH_PID} && return
 				fi
 			fi
 		done < /tmp/ee_processes
 		sleep 0.01
-	done	
+	done
 }
 
 function set_gptokeyb() {
