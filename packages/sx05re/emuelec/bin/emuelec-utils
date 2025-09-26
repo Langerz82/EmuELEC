@@ -502,36 +502,53 @@ function end_app_video() {
 }
 
 function watch_splash() {
-	SPLASH_PID=$(cat /tmp/splash.pid)
-	PID=$(cat /tmp/emuelecRun.pid)
+	local SPLASH_PID=$(cat /tmp/splash.pid)
+	local PID=$(cat /tmp/emuelecRun.pid)
 
 	[[ -z "${SPLASH_PID}" ]] && exit 0
 	[[ -z "${PID}" ]] && exit 0
 
 	mkdir -p /tmp/watch_splash
 
-	ignore_list=(
+	local ignore_list=(
 		"/usr/bin/gptokeyb"
 		"/usr/bin/bash"
 		"/usr/bin/sh"
 	)
 
+	local START_TIME=$( date +%s )
+	local NEW_SCAN=1
 	while true; do
-		pgrep -P ${PID} > /tmp/watch_splash/ee_processes
+		local LOOP_DELAY=$(( $(date +%s) - ${START_TIME} ))
+		if [[ ${LOOP_DELAY} -gt 10 ]]; then
+			kill -9 ${SPLASH_PID}
+			return
+		fi
+		[[ "${NEW_SCAN}" == "1" ]] && pgrep -P ${PID} > /tmp/watch_splash/ee_processes
 		while read line; do
-			LAST_PROCESS=$(lsof | grep -e "^${line}.*$" | tail -n 1 )
-			LAST_PID=$( echo "${LAST_PROCESS}" | cut -f1 )
-			LAST_PID_NAME=$( echo "${LAST_PROCESS}" | cut -f2 )
+			local LAST_PROCESS=$(lsof | grep -e "^${line}.*$" | tail -n 1 )
+#			echo "LAST_PROCESS=${LAST_PROCESS}"
+			local LAST_PID=$( echo "${LAST_PROCESS}" | cut -f1 )
+			local LAST_PID_NAME=$( echo "${LAST_PROCESS}" | cut -f2 )
 			if [[ "/usr/bin/bash" == *${LAST_PID_NAME}* ]] || [[ "/usr/bin/sh" == *${LAST_PID_NAME}* ]]; then
-				NEW_PROCESSES=$( pgrep -P ${LAST_PID} )
-				[[ ! -z "${NEW_PROCESSES}" ]] && echo "${NEW_PROCESSES}" > /tmp/watch_splash/ee_processes && break
+				local NEW_PROCESSES=$( pgrep -P ${LAST_PID} )
+#				echo "NEW_PROCESSES=${NEW_PROCESSES}"
+				[[ -z "${NEW_PROCESSES}" ]] && echo "no processes in: ${LAST_PID_NAME}, aborting."
+				if [[ ! -z "${NEW_PROCESSES}" ]]; then
+					echo "${NEW_PROCESSES}" > /tmp/watch_splash/ee_processes
+					NEW_SCAN=0
+					break
+				fi
+				NEW_SCAN=1
+				break
 			fi
 			if [[ ! " ${ignore_list[*]} " == *${LAST_PID_NAME}* ]]; then
-				ACCESSING_FB=$( lsof | grep -e "^${LAST_PID}.*$" | grep -e "/dev/fb[0-3]*" )
+				local ACCESSING_FB=$( lsof | grep -e "^${LAST_PID}.*$" | grep -e "/dev/fb[0-3]*" )
 				if [[ ! -z "${ACCESSING_FB}" ]]; then
           echo "splash async waiting on process: ${LAST_PID_NAME}" | tee -a /emuelec/logs/emuelec.log
-          echo "killing ${SPLASH_PID}"
-					kill -9 ${SPLASH_PID} && return
+#          echo "killing ${SPLASH_PID}"
+					kill -9 ${SPLASH_PID}
+					return
 				fi
 			fi
 		done < /tmp/watch_splash/ee_processes
