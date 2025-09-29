@@ -24,16 +24,16 @@ max_area=0
 max_fb=""
 
 for fb in /sys/class/graphics/fb*/virtual_size; do
-    if [ -f "$fb" ]; then
-        fb_num=$(echo "$fb" | grep -o 'fb[0-9]*' | sed 's/fb//')
-        size=$(cat "$fb")
-        width=$(echo "$size" | cut -d',' -f1)
-        height=$(echo "$size" | cut -d',' -f2)
-        area=$((width * height))
+    if [ -f "${fb}" ]; then
+        fb_num=$( echo "${fb}" | grep -o 'fb[0-9]*' | sed 's/fb//' )
+        size=$( cat "${fb}" )
+        width=$( echo "${size}" | cut -d',' -f1 )
+        height=$( echo "${size}" | cut -d',' -f2 )
+        area=$(( width * height ))
               
-        if [ $area -gt $max_area ]; then
-            max_area=$area
-            max_fb=$fb_num
+        if [ ${area} -gt ${max_area} ]; then
+            max_area=${area}
+            max_fb=${fb_num}
         fi
     fi
 done
@@ -113,10 +113,10 @@ set_main_framebuffer() {
 
   if [[ -n "${FBW}" && "${FBW}" > 0 && -n "${FBH}" && "${FBH}" > 0 ]]; then
     MFBH=$(( FBH*2 ))
-    fbset -fb /dev/fb$max_fb -g ${FBW} ${FBH} ${FBW} ${MFBH} ${BPP}
-    [[ -f "/sys/class/graphics/fb$max_fb/free_scale_axis" ]] && echo 0 0 $(( FBW-1 )) $(( FBH-1 )) > /sys/class/graphics/fb$max_fb/free_scale_axis
-    [[ -f "/sys/class/graphics/fb$max_fb/free_scale" ]] && echo 0 > /sys/class/graphics/fb$max_fb/free_scale
-    [[ -f "/sys/class/graphics/fb$max_fb/freescale_mode" ]] && echo 0 > /sys/class/graphics/fb$max_fb/freescale_mode
+    fbset -fb /dev/fb${max_fb} -g ${FBW} ${FBH} ${FBW} ${MFBH} ${BPP}
+    [[ -f "/sys/class/graphics/fb${max_fb}/free_scale_axis" ]] && echo 0 0 $(( FBW-1 )) $(( FBH-1 )) > /sys/class/graphics/fb${max_fb}/free_scale_axis
+    [[ -f "/sys/class/graphics/fb${max_fb}/free_scale" ]] && echo 0 > /sys/class/graphics/fb${max_fb}/free_scale
+    [[ -f "/sys/class/graphics/fb${max_fb}/freescale_mode" ]] && echo 0 > /sys/class/graphics/fb${max_fb}/freescale_mode
   fi
 }
 
@@ -124,9 +124,9 @@ set_fb_borders() {
 	local CUSTOM_OFFSETS=( ${1} ${2} ${3} ${4} )
 	local COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
 	if [[ "${COUNT_ARGS}" == "4" ]]; then
-	  echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb$max_fb/window_axis
-	  echo 1 > /sys/class/graphics/fb$max_fb/freescale_mode
-	  echo 0x10001 > /sys/class/graphics/fb$max_fb/free_scale
+	  echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb${max_fb}/window_axis
+	  echo 1 > /sys/class/graphics/fb${max_fb}/freescale_mode
+	  echo 0x10001 > /sys/class/graphics/fb${max_fb}/free_scale
 	fi
 }
 
@@ -161,7 +161,7 @@ FBH=0
 
 # Here we first clear the primary display buffer of leftover artifacts then set
 # the secondary small buffers flag to stop copying across.
-blank_buffer >> /dev/null
+# blank_buffer >> /dev/null
 
 # The current display mode before it may get changed below.
 OLD_MODE=$( cat ${FILE_MODE} )
@@ -223,11 +223,15 @@ fi
 # Once we know the Width and Height is valid numbers we set the primary display
 # buffer, and we multiply the 2nd height by a factor of 2 I assume for interlaced 
 # support.
-CURRENT_MODE=$( cat ${FILE_MODE} )
-if [[ "${CURRENT_MODE}" == "${MODE}" ]]; then
+# CURRENT_MODE=$( cat ${FILE_MODE} )
+CURRENT_SIZE="$( cat "/sys/class/graphics/fb${max_fb}/fix_target_size" )"
+NEW_SIZE="${FBW} ${FBH}"
+#echo ${CURRENT_SIZE}
+#echo ${NEW_SIZE}
+if [[ "${CURRENT_SIZE}" != "${NEW_SIZE}" ]]; then
   echo "SET MAIN FRAME BUFFER"
-  set_main_framebuffer ${FBW} ${FBH} 
-  blank_buffer
+  blank_buffer >> /dev/null
+	set_main_framebuffer ${FBW} ${FBH} 
 fi
 
 # Now that the primary buffer has been acquired we blank it again because the new
