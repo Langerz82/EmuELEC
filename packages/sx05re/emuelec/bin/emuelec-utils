@@ -452,12 +452,29 @@ function createMultidisc() {
   echo -e "\n"
 }
 
+function blank_buffer() {
+# Clears screen buffer
+  # Blank the buffer.
+  dd if=/dev/zero of=/dev/fb0 bs=256K conv=sync,noerror,notrunc > /dev/null 2>&1
+  dd if=/dev/zero of=/dev/fb1 bs=256K conv=sync,noerror,notrunc > /dev/null 2>&1
+}
+
 function init_app_video() {
 	local PLATFORM=$1
 	local ROMNAME=$2
 	local BASEROMNAME=${ROMNAME##*/}
 
 	blank_buffer
+	fbfix 0
+	fbfix 1
+
+	if [[ "${PLATFORM}" == "ports" ]] && [[ "${BASEROMNAME}" == "PortMaster.sh" ]]; then 
+		return
+	fi
+	
+  if [[ "${PLATFORM}" == "setup" ]]; then 
+		return
+	fi
 
 	[[ -f "/tmp/EE_LASTVIDEO" ]] && return
 
@@ -465,15 +482,35 @@ function init_app_video() {
 	local VIDEO_EMU=$(get_ee_setting nativevideo "${PLATFORM}" "${BASEROMNAME}")
 	[[ -z "$VIDEO_EMU" ]] && VIDEO_EMU=$(cat /tmp/EE_LASTVIDEO)
 
+	# Set the display video to that of the emulator setting.
+	[ ! -z "${VIDEO_EMU}" ] && ${TBASH} setres.sh "${VIDEO_EMU}" "${PLATFORM}" "${BASEROMNAME}" # set display
+
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
 	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
 
-	# Set the display video to that of the emulator setting.
-	[ ! -z "${VIDEO_EMU}" ] && ${TBASH} setres.sh "${VIDEO_EMU}" "${PLATFORM}" "${BASEROMNAME}" # set display
+	fbfix 0
+	fbfix 1
 }
 
 function end_app_video() {
+	local PLATFORM=$1
+	local ROMNAME=$2
+	local BASEROMNAME=${ROMNAME##*/}
+
+	blank_buffer
+	
+	fbfix 0
+	fbfix 1
+
+	if [[ "${PLATFORM}" == "ports" ]] && [[ "${BASEROMNAME}" == "PortMaster.sh" ]]; then 
+		return
+	fi
+	
+	if [[ "${PLATFORM}" == "setup" ]]; then 
+		return
+	fi
+
 	local LAST_VIDEO="$(cat /tmp/EE_LASTVIDEO)"
 
 	[[ ! -f "/tmp/EE_LASTVIDEO" ]] && return
@@ -483,10 +520,14 @@ function end_app_video() {
 
 	# Show exit splash
 	${TBASH} show_splash.sh exit
+ 	
+	blank_buffer
 
-  blank_buffer
+	fbfix 0
+	fbfix 1
 
 	rm /tmp/EE_LASTVIDEO
+	rm /tmp/EE_SKIP_APP_VIDEO
 }
 
 function set_gptokeyb() {
