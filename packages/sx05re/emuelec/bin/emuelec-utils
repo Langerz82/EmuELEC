@@ -457,6 +457,8 @@ function init_app_video() {
 	local ROMNAME=$2
 	local BASEROMNAME=${ROMNAME##*/}
 
+  [[ "${PLATFORM}" == "setup" ]] && return
+
 	blank_buffer
 
 	[[ -f "/tmp/EE_LASTVIDEO" ]] && return
