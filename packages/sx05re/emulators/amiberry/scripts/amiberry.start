@@ -58,6 +58,11 @@ AMIBERRY_SET_CONF() {
 find_gamepad 
 }
 
+if [[ -f "${AMIBERRY_CONFIG_DIR}/amiberry.conf" ]]; then
+		HAS_ENTRY=$( cat "${AMIBERRY_CONFIG_DIR}/amiberry.conf" | grep -e '^default_correct_aspect_ratio=.*$' )
+		[[ -z "${HAS_ENTRY}" ]] && echo "default_correct_aspect_ratio=no" >> "${AMIBERRY_CONFIG_DIR}/amiberry.conf"
+fi
+
 # Check if we are loading a .zip file
 if [ `echo $1 | grep -i .zip | wc -l` -eq 1 ]; then
   
