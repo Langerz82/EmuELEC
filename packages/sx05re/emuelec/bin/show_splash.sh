@@ -16,6 +16,9 @@
 
 ACTION_TYPE="${1}"
 PLATFORM="${2}"
+ROMNAME="${3}"
+BASEROMNAME=${ROMNAME##*/}
+BASEROMNAME_NOEXT=${BASEROMNAME%.*}
 
 GAMELOADINGSPLASH="/storage/.config/splash/loading-game.png"
 BLANKSPLASH="/storage/.config/splash/blank.png"
@@ -39,26 +42,40 @@ esac
 MODE="$(get_resolution)"
 SPLASHDIR="/storage/roms/splash"
 
+IMAGE_EXT=(png jpg jpeg bmp gif)
+VIDEO_EXT=(mp4 mkv webm avi mov mpg mpeg)
+
+COMBINED_EXT=$( echo ${VIDEO_EXT[@]} ${IMAGE_EXT[@]} )
+FIND_COMBINED_EXT=$( echo ${COMBINED_EXT[@]} | sed 's/ /\\|/g')
+
+mkdir -p /tmp/splash
+
+function get_file_ext() {
+	local FILENAME="/tmp/splash/get_file_ext_output"
+	find ${1} -maxdepth 1 -type f -name "${2}.*" -regex ".*\.\(${FIND_COMBINED_EXT}\)$" > ${FILENAME}
+	while IFS= read -r line || [ -n "$line" ]; do
+		local FILE_EXT="${line##*.}"
+		if [[ "${COMBINED_EXT[@]}" == *"${FILE_EXT}"* ]]; then
+			echo "${line}" && return
+		fi
+	done < "${FILENAME}"
+	echo ""
+}
+
 if [ "${ACTION_TYPE}" = "intro" ] || [ "${ACTION_TYPE}" = "exit" ]; then
   SPLASH="${DEFAULTSPLASH}"
   [[ "${MODE}" == *"x"* ]] && SPLASH="/storage/.config/splash/splash-std.png"
 
   if [ "${ACTION_TYPE}" = "exit" ]; then
 		EE_SPLASH_EXIT="$(get_ee_setting ee_splashexit)"
-		[[ -z "${EE_SPLASH_EXIT}" ]] && EE_SPLASH_EXIT=2
+		[[ -z "${EE_SPLASH_EXIT}" ]] && EE_SPLASH_EXIT=0
 
-		CUSTOM_EXIT_IMAGE="$(get_ee_setting ee_customexitsplashimage)"		
-    CUSTOM_EXIT_VIDEO="$(get_ee_setting ee_customexitsplashvideo)"
+		CUSTOM_EXIT="$(get_ee_setting ee_customexitsplash)"
 
-		if [ "${EE_SPLASH_EXIT}" = "0" ] && [ -n "${CUSTOM_EXIT_IMAGE}" ] && [ -f "${CUSTOM_EXIT_IMAGE}" ]; then
-			SPLASH="${CUSTOM_EXIT_IMAGE}"
-    elif [ "${EE_SPLASH_EXIT}" = "1" ] && [ -n "${CUSTOM_EXIT_VIDEO}" ] && [ -f "${CUSTOM_EXIT_VIDEO}" ]; then
-      SPLASH="${CUSTOM_EXIT_VIDEO}"
-		elif [ "${EE_SPLASH_EXIT}" = "2" ] && [ -f "/storage/roms/splash/exitsplash.png" ]; then
-      SPLASH="/storage/roms/splash/exitsplash.png"
-    elif [ "${EE_SPLASH_EXIT}" = "3" ] && [ -f "/storage/roms/splash/exitvideo.mp4" ]; then
-      SPLASH="/storage/roms/splash/exitvideo.mp4"
+		if [ "${EE_SPLASH_EXIT}" = "1" ] && [ -n "${CUSTOM_EXIT}" ] && [ -f "${CUSTOM_EXIT}" ]; then
+			 SPLASH="${CUSTOM_EXIT}"
     fi
+		[[ ! -f "${SPLASH}" ]] && SPLASH="${DEFAULTSPLASH}"
   fi
 
 elif [ "${ACTION_TYPE}" = "blank" ]; then
@@ -68,33 +85,23 @@ elif [ "${ACTION_TYPE}" = "gameloading" ]; then
   [[ "${MODE}" == *"x"* ]] && GAMELOADINGSPLASH="/storage/.config/splash/loading-game-std.png"
 
 	EE_SPLASH_LOADING="$(get_ee_setting ee_splashloading)"
-	[[ -z "${EE_SPLASH_LOADING}" ]] && EE_SPLASH_LOADING=6
+	[[ -z "${EE_SPLASH_LOADING}" ]] && EE_SPLASH_LOADING=0
 	
-	CUSTOM_SPLASH_IMAGE="$(get_ee_setting ee_customsplashimage)"
-	CUSTOM_SPLASH_VIDEO="$(get_ee_setting ee_customsplashvideo)"
+	CUSTOM_SPLASH="$(get_ee_setting ee_customsplash)"
 
-  if [ "${EE_SPLASH_LOADING}" = "0" ] && [ -n "${CUSTOM_SPLASH_IMAGE}" ] && [ -f "${CUSTOM_SPLASH_IMAGE}" ]; then
-    SPLASH="${CUSTOM_SPLASH_IMAGE}"
-  elif [ "${EE_SPLASH_LOADING}" = "1" ] && [ -n "${CUSTOM_SPLASH_VIDEO}" ] && [ -f "${CUSTOM_SPLASH_VIDEO}" ]; then
-    SPLASH="${CUSTOM_SPLASH_VIDEO}"
-  elif [ "${EE_SPLASH_LOADING}" = "2" ] && [ -f "/storage/roms/splash/launching.mp4" ]; then
-    SPLASH="/storage/roms/splash/launching.mp4"
-	elif [ "${EE_SPLASH_LOADING}" = "3" ] && [ -f "${SPLASHDIR}/${PLATFORM}/launching.mp4" ]; then
-    SPLASH="${SPLASHDIR}/${PLATFORM}/launching.mp4"
-  elif [ "${EE_SPLASH_LOADING}" = "4" ] && [ -d "${SPLASHDIR}/${PLATFORM}" ]; then
-    SPLASH="$(ls ${SPLASHDIR}/${PLATFORM}/*.mp4 2>/dev/null | sort -R | head -n 1)"
-  elif [ "${EE_SPLASH_LOADING}" = "5" ]; then
-    SPLASH="$(ls /storage/roms/splash/video/*.mp4 2>/dev/null | sort -R | head -n 1)"
-	elif [ "${EE_SPLASH_LOADING}" = "6" ] && [ -f "/storage/roms/splash/launching.png" ]; then
-    SPLASH="/storage/roms/splash/launching.png"
-	elif [ "${EE_SPLASH_LOADING}" = "7" ] && [ -f "${SPLASHDIR}/${PLATFORM}/launching.png" ]; then
-    SPLASH="${SPLASHDIR}/${PLATFORM}/launching.png"
-	elif [ "${EE_SPLASH_LOADING}" = "8" ] && [ -d "${SPLASHDIR}/${PLATFORM}" ]; then
-    SPLASH="$(ls ${SPLASHDIR}/${PLATFORM}/*.{png,jpg,jpeg} 2>/dev/null | sort -R | head -n 1)"
-	elif [ "${EE_SPLASH_LOADING}" = "9" ]; then
-    SPLASH="$(ls /storage/roms/splash/random/*.{png,jpg,jpeg} 2>/dev/null | sort -R | head -n 1)"
+	SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "${BASEROMNAME_NOEXT}")
+	[[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "${PLATFORM}")
+
+  if [ "${EE_SPLASH_LOADING}" = "0" ]; then
+		[[ -z "${SPLASH}" ]] && SPLASH=${GAMELOADINGSPLASH}
+  elif [ "${EE_SPLASH_LOADING}" = "1" ] && [ -n "${CUSTOM_SPLASH}" ] && [ -f "${CUSTOM_SPLASH}" ]; then
+    [[ -z "${SPLASH}" ]] && SPLASH="${CUSTOM_SPLASH}"
+	elif [ "${EE_SPLASH_LOADING}" = "2" ]; then
+		[[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/random" "*")
+	else
+		SPLASH="${GAMELOADINGSPLASH}"
   fi
-  [ -z "${SPLASH}" ] && SPLASH="${GAMELOADINGSPLASH}"
+	[[ ! -f "${SPLASH}" ]] && SPLASH="${GAMELOADINGSPLASH}"
 fi
 
 # OGA/GameForce -> mpv
@@ -122,14 +129,21 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
   if [ "${ACTION_TYPE}" != "intro" ]; then
     LOADING_DURATION="$(get_ee_setting ee_splash_loading_duration)"
     DURATION="${LOADING_DURATION}"
+		FALLBACK_SPLASH="${GAMELOADINGSPLASH}"
 
     if [ "${ACTION_TYPE}" = "exit" ]; then
 			EXIT_DURATION="$(get_ee_setting ee_splash_exit_duration)"
 			DURATION="${EXIT_DURATION}"
+			FALLBACK_SPLASH="/storage/roms/splash/exitsplash.png"
     fi
 
 		if [ -z "${DURATION}" ] || [ ! -n ${DURATION} ]; then
 			DURATION=2
+		fi
+
+		# if no is_image and no is_video.
+		if is_image "${SPLASH}" == 1 && is_video "${SPLASH}" == 1; then
+			SPLASH="${FALLBACK_SPLASH}"
 		fi
 
     if is_image "${SPLASH}"; then
