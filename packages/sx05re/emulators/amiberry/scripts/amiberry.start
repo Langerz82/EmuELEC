@@ -16,17 +16,22 @@ i=0
 
 echo "EmuELEC Amiberry Log" > "$AMIBERRY_LOG"
 
-find_gamepad() {
-# Search for connected gamepads based s0 and extract the name to $GAMEPAD
-for file in /tmp/joypads/*.cfg; do
-	EE_GAMEPAD=$(cat "$file" | grep input_device|  cut -d'"' -f 2)
-	ES_EE_GAMEPAD=$(printf %q "$EE_GAMEPAD")
-if cat /proc/bus/input/devices | grep -Ew -A 4 -B 1 "Name=\"${ES_EE_GAMEPAD}" | grep "js0" > /dev/null; then
-	sed -i "s|joyport1_friendlyname=.*|joyport1_friendlyname=${EE_GAMEPAD}|" "$AMIBERRY_TMP_CONFIG"
-	echo "Gamepad used $EE_GAMEPAD" >> "$AMIBERRY_LOG"
-	break;
-fi
-done
+source joy_common.sh "amiberry"
+
+clean_pad() {
+	return
+}
+
+set_pad() {
+	if [[ "${1}" != 1 ]]; then
+		return
+	fi
+
+  local GC_CONFIG=$(cat "${GCDB}" | grep "${3}" | grep "platform:Linux" | head -1)
+  [[ -z ${GC_CONFIG} ]] && return
+
+	local GC_NAME=$(echo ${GC_CONFIG} | cut -d',' -f2)
+	sed -i "s|joyport1_friendlyname=.*|joyport1_friendlyname=${GC_NAME}|" "$AMIBERRY_TMP_CONFIG"
 }
 
 # Set SDL audio driver to alsa
@@ -55,7 +60,7 @@ AMIBERRY_SET_CONF() {
     cp $AMIBERRY_CONFIG_DIR/AmigaA500-default.uae "$AMIBERRY_TMP_CONFIG"
   fi
 
-find_gamepad 
+	jc_get_players
 }
 
 if [[ -f "${AMIBERRY_CONFIG_DIR}/amiberry.conf" ]]; then
@@ -65,10 +70,10 @@ fi
 
 # Check if we are loading a .zip file
 if [ `echo $1 | grep -i .zip | wc -l` -eq 1 ]; then
-  
+
   # Unpack the zip file
   unzip -q -o "$1" -d "$AMIBERRY_TMP_DIR"
-  
+
   if [ -f "$AMIBERRY_TMP_DIR"/*.*nfo ] && [ -f "$AMIBERRY_TMP_DIR"/*/*.*lave ]; then
 
     # WHDLoad file detected
@@ -86,7 +91,7 @@ if [ `echo $1 | grep -i .zip | wc -l` -eq 1 ]; then
 
     # Set default config
     AMIBERRY_SET_CONF "$1"
-  
+
     # Assign files to floppy0-3
     for FILE in "$AMIBERRY_TMP_DIR"/*
     do
@@ -97,7 +102,7 @@ if [ `echo $1 | grep -i .zip | wc -l` -eq 1 ]; then
         break;
       fi
     done
-  
+
     # Add game files as floppies 0-3 to amiberry.uae & start amiberry
     echo -e ";" >> "$AMIBERRY_TMP_CONFIG"
     echo -e "; *** temporary added Floppy Drives" >> "$AMIBERRY_TMP_CONFIG"
@@ -109,7 +114,7 @@ if [ `echo $1 | grep -i .zip | wc -l` -eq 1 ]; then
 
 # Check for WHDload files (.lha)
 elif [ `echo $1 | grep -i .lha | wc -l` -eq 1 ]; then
-    
+
   #.lha file detected
   echo "Loading a WHDLoad (.lha) file..." >> $AMIBERRY_LOG
 
