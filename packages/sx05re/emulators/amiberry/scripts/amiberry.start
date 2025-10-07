@@ -17,16 +17,10 @@ i=0
 echo "EmuELEC Amiberry Log" > "$AMIBERRY_LOG"
 
 find_gamepad() {
-# Search for connected gamepads based s0 and extract the name to $GAMEPAD
-for file in /tmp/joypads/*.cfg; do
-	EE_GAMEPAD=$(cat "$file" | grep input_device|  cut -d'"' -f 2)
-	ES_EE_GAMEPAD=$(printf %q "$EE_GAMEPAD")
-if cat /proc/bus/input/devices | grep -Ew -A 4 -B 1 "Name=\"${ES_EE_GAMEPAD}" | grep "js0" > /dev/null; then
-	sed -i "s|joyport1_friendlyname=.*|joyport1_friendlyname=${EE_GAMEPAD}|" "$AMIBERRY_TMP_CONFIG"
-	echo "Gamepad used $EE_GAMEPAD" >> "$AMIBERRY_LOG"
-	break;
-fi
-done
+	local GC_NAME=$(sdljoytest -skip_loop | grep "Joystick 0 name" | cut -d"'" -f2)
+	if [[ ! -z "${GC_NAME}" ]] && [[ -f "/tmp/joypads/${GC_NAME}.cfg" ]]; then
+		sed -i "s|joyport1_friendlyname=.*|joyport1_friendlyname=${GC_NAME}|" "$AMIBERRY_TMP_CONFIG"
+	fi
 }
 
 # Set SDL audio driver to alsa
