@@ -116,8 +116,6 @@ gfx_resolution=hires
 gfx_linemode=none
 gfx_fullscreen_amiga=true
 gfx_fullscreen_picasso=true
-gfx_center_horizontal=smart
-gfx_center_vertical=smart
 ntsc=false
 ; 
 ; *** CPU options

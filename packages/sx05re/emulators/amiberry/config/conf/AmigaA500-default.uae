@@ -109,15 +109,11 @@ cd_speed=100
 gfx_framerate=0
 gfx_width=720
 gfx_height=568
-gfx_refreshrate=50
-gfx_refreshrate_rtg=50
 gfx_lores=false
 gfx_resolution=hires
 gfx_linemode=none
 gfx_fullscreen_amiga=true
 gfx_fullscreen_picasso=true
-gfx_center_horizontal=smart
-gfx_center_vertical=smart
 ntsc=false
 ; 
 ; *** CPU options
@@ -125,7 +121,9 @@ ntsc=false
 cpu_speed=real
 cpu_type=68000
 cpu_model=68000
-cpu_compatible=false
+cpu_compatible=true
+cpu_cycle_exact=true
+blitter_cycle_exact=true
 cpu_24bit_addressing=true
 fpu_strict=false
 compfpu=true
