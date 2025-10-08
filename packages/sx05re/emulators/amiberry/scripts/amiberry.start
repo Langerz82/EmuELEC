@@ -17,9 +17,15 @@ i=0
 echo "EmuELEC Amiberry Log" > "$AMIBERRY_LOG"
 
 find_gamepad() {
-	local GC_NAME=$(sdljoytest -skip_loop | grep "Joystick 0 name" | cut -d"'" -f2)
+	local SDLJOYTEST="/tmp/emulation/amiberry/sdljoytest"
+	sdljoytest -skip_loop > ${SDLJOYTEST}
+	local GC_NAME=$(cat ${SDLJOYTEST} | grep "Joystick 0 name" | cut -d"'" -f2)
 	if [[ ! -z "${GC_NAME}" ]] && [[ -f "/tmp/joypads/${GC_NAME}.cfg" ]]; then
 		sed -i "s|joyport1_friendlyname=.*|joyport1_friendlyname=${GC_NAME}|" "$AMIBERRY_TMP_CONFIG"
+	fi
+	GC_NAME=$(cat ${SDLJOYTEST} | grep "Joystick 1 name" | cut -d"'" -f2)
+	if [[ ! -z "${GC_NAME}" ]] && [[ -f "/tmp/joypads/${GC_NAME}.cfg" ]]; then
+		sed -i "s|joyport2_friendlyname=.*|joyport2_friendlyname=${GC_NAME}|" "$AMIBERRY_TMP_CONFIG"
 	fi
 }
 
