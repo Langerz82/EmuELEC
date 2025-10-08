@@ -44,18 +44,18 @@ joyport0_autofire=none
 joyport0_friendlyname=Mouse
 joyport0_name=MOUSE0
 ; 
-joyport1=joy1
+joyport1=joy0
 joyport1_autofire=normal
 joyport1_friendlyname=Logitech Gamepad F310
-joyport1_name=JOY1
-; 
-joyport2=joy0
-joyport2_autofire=normal
-joyport2_friendlyname=Keyboard as Joystick [Default]
-joyport2_name=JOY0
-; 
-; 
-; 
+joyport1_name=JOY0
+;
+;joyport2=joy1
+;joyport2_autofire=normal
+;joyport2_friendlyname=Keyboard as Joystick [Default]
+;joyport2_name=JOY1
+;
+;
+;
 input.joymouse_speed_analog=2
 input.joymouse_speed_digital=10
 input.joymouse_deadzone=33
