@@ -45,7 +45,7 @@ SPLASHDIR="/storage/roms/splash"
 IMAGE_EXT=(png jpg jpeg bmp gif)
 VIDEO_EXT=(mp4 mkv webm avi mov mpg mpeg)
 
-COMBINED_EXT=$( echo ${VIDEO_EXT[@]} ${IMAGE_EXT[@]} )
+COMBINED_EXT=($( echo ${VIDEO_EXT[@]} ${IMAGE_EXT[@]} ))
 FIND_COMBINED_EXT=$( echo ${COMBINED_EXT[@]} | sed 's/ /\\|/g')
 
 mkdir -p /tmp/splash
@@ -53,12 +53,13 @@ mkdir -p /tmp/splash
 function get_file_ext() {
 	local FILENAME="/tmp/splash/get_file_ext_output"
 	find ${1} -maxdepth 1 -type f -name "${2}.*" -regex ".*\.\(${FIND_COMBINED_EXT}\)$" > ${FILENAME}
-	while IFS= read -r line || [ -n "$line" ]; do
-		local FILE_EXT="${line##*.}"
-		if [[ "${COMBINED_EXT[@]}" == *"${FILE_EXT}"* ]]; then
-			echo "${line}" && return
+  for CEXT in "${COMBINED_EXT[@]}"; do
+    local FILE=$(cat $FILENAME | grep -e "^.*\.${CEXT}$" )
+    local FILE_EXT="${FILE##*.}"
+    if [[ "${CEXT}" == "${FILE_EXT}" ]]; then
+			echo "${FILE}" && return
 		fi
-	done < "${FILENAME}"
+  done
 	echo ""
 }
 
