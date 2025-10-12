@@ -90,6 +90,7 @@ elif [ "${ACTION_TYPE}" = "gameloading" ]; then
 	CUSTOM_SPLASH="$(get_ee_setting ee_customsplash)"
 
 	SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "${BASEROMNAME_NOEXT}")
+  [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "${PLATFORM}")
 	[[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "launching")
 
   if [ "${EE_SPLASH_LOADING}" = "0" ]; then
