@@ -464,9 +464,7 @@ function init_app_video() {
 	local ROMNAME=$2
 	local BASEROMNAME=${ROMNAME##*/}
 
-	blank_buffer
-	fbfix 0
-	fbfix 1
+	[[ -f "/tmp/EE_LASTVIDEO" ]] && return
 
 	if [[ "${PLATFORM}" == "ports" ]] && [[ "${BASEROMNAME}" == "PortMaster.sh" ]]; then 
 		return
@@ -475,8 +473,6 @@ function init_app_video() {
   if [[ "${PLATFORM}" == "setup" ]]; then 
 		return
 	fi
-
-	[[ -f "/tmp/EE_LASTVIDEO" ]] && return
 
 	echo "$(cat /sys/class/display/mode)" > /tmp/EE_LASTVIDEO
 	local VIDEO_EMU=$(get_ee_setting nativevideo "${PLATFORM}" "${BASEROMNAME}")
@@ -488,9 +484,6 @@ function init_app_video() {
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
 	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
-
-	fbfix 0
-	fbfix 1
 }
 
 function end_app_video() {
@@ -498,10 +491,7 @@ function end_app_video() {
 	local ROMNAME=$2
 	local BASEROMNAME=${ROMNAME##*/}
 
-	blank_buffer
-	
-	fbfix 0
-	fbfix 1
+  [[ ! -f "/tmp/EE_LASTVIDEO" ]] && return
 
 	if [[ "${PLATFORM}" == "ports" ]] && [[ "${BASEROMNAME}" == "PortMaster.sh" ]]; then 
 		return
@@ -513,21 +503,36 @@ function end_app_video() {
 
 	local LAST_VIDEO="$(cat /tmp/EE_LASTVIDEO)"
 
-	[[ ! -f "/tmp/EE_LASTVIDEO" ]] && return
-
 	# Return to default mode
 	${TBASH} setres.sh ${LAST_VIDEO}
 
 	# Show exit splash
 	${TBASH} show_splash.sh exit
- 	
-	blank_buffer
 
-	fbfix 0
-	fbfix 1
+	blank_buffer
 
 	rm /tmp/EE_LASTVIDEO
 	rm /tmp/EE_SKIP_APP_VIDEO
+}
+
+function getmainfb() {
+  local max_area=0
+  local max_fb=0
+  for fb in /sys/class/graphics/fb*/virtual_size; do
+      if [ -f "$fb" ]; then
+          local fb_num=$(echo "$fb" | grep -o 'fb[0-9]*' | sed 's/fb//')
+          local size=$(cat "$fb")
+          local width=$(echo "$size" | cut -d',' -f1)
+          local height=$(echo "$size" | cut -d',' -f2)
+          local area=$((width * height))
+
+          if [ $area -gt $max_area ]; then
+              max_area=$area
+              max_fb=$fb_num
+          fi
+      fi
+  done
+  echo $max_fb
 }
 
 function set_gptokeyb() {
