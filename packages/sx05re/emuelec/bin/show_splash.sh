@@ -51,15 +51,17 @@ FIND_COMBINED_EXT=$( echo ${COMBINED_EXT[@]} | sed 's/ /\\|/g')
 mkdir -p /tmp/splash
 
 function get_file_ext() {
- local MEDIA_FILES=("$(find ${1} -maxdepth 1 -type f -name "${2}.*" -regex ".*\.\(${FIND_COMBINED_EXT}\)$")")
- for CEXT in "${COMBINED_EXT[@]}"; do
-   local FILE=$(echo "${MEDIA_FILES[@]}" | grep -e "^.*\.${CEXT}$" )
-   local FILE_EXT="${FILE##*.}"
-   if [[ "${CEXT}" == "${FILE_EXT}" ]]; then
-     echo "${FILE}" && return
-   fi
- done
- echo ""
+	local MEDIA_FILES=("$(find ${1} -maxdepth 1 -type f -name "${2}.*" -regex ".*\.\(${FIND_COMBINED_EXT}\)$")")
+	if [[ ! -z "${MEDIA_FILES[@]}" ]]; then
+		for CEXT in "${COMBINED_EXT[@]}"; do
+			local FILE=$(echo "${MEDIA_FILES[@]}" | grep -e "^.*\.${CEXT}$" )
+			local FILE_EXT="${FILE##*.}"
+			if [[ "${CEXT}" == "${FILE_EXT}" ]]; then
+			 echo "${FILE}" && return
+			fi
+		done
+	fi
+	echo ""
 }
 
 if [ "${ACTION_TYPE}" = "intro" ] || [ "${ACTION_TYPE}" = "exit" ]; then
@@ -98,7 +100,7 @@ elif [ "${ACTION_TYPE}" = "gameloading" ]; then
  elif [ "${EE_SPLASH_LOADING}" = "1" ] && [ -n "${CUSTOM_SPLASH}" ] && [ -f "${CUSTOM_SPLASH}" ]; then
    [[ -z "${SPLASH}" ]] && SPLASH="${CUSTOM_SPLASH}"
  elif [ "${EE_SPLASH_LOADING}" = "2" ]; then
-   [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/random" "*")
+	 [[ -z "${SPLASH}" ]] && SPLASH="$(find "${SPLASHDIR}/random" -maxdepth 1 -type f -regex ".*\.\(${FIND_COMBINED_EXT}\)$" 2>/dev/null | sort -R | head -n 1)"
  else
    SPLASH="${GAMELOADINGSPLASH}"
  fi
