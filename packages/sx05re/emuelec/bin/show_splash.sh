@@ -51,7 +51,10 @@ FIND_COMBINED_EXT=$( echo ${COMBINED_EXT[@]} | sed 's/ /\\|/g')
 mkdir -p /tmp/splash
 
 function get_file_ext() {
-	local MEDIA_FILES=("$(find ${1} -maxdepth 1 -type f -name "${2}.*" -regex ".*\.\(${FIND_COMBINED_EXT}\)$")")
+	local MEDIA_FILES=()
+	if [[ -d "${1}" ]]; then
+		MEDIA_FILES=("$(find ${1} -maxdepth 1 -type f -name "${2}.*" -regex ".*\.\(${FIND_COMBINED_EXT}\)$")")
+	fi
 	if [[ ! -z "${MEDIA_FILES[@]}" ]]; then
 		for CEXT in "${COMBINED_EXT[@]}"; do
 			local FILE=$(echo "${MEDIA_FILES[@]}" | grep -e "^.*\.${CEXT}$" )
