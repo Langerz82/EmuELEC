@@ -5,7 +5,7 @@
 
 . /etc/profile
 
-AUTOGP=$(get_ee_setting ppsspp_auto_gamepad)
+AUTOGP=$(get_ee_setting ppssppsdl_auto_gamepad)
 if [[ "${AUTOGP}" == "1" ]]; then
 	set_ppsspp_joy.sh
 fi
