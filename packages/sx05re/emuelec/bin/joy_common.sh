@@ -19,25 +19,26 @@ mkdir -p "/tmp/jc"
 #CACHE_FILE="/tmp/jc/${EMULATOR}_joy_cache.cfg"
 
 SDLJOYTEST="/tmp/jc/sdljoytest.txt"
+INPUT_DEVICES="/tmp/jc/devices.txt"
 
 jc_get_device_header() {
   local GUID="${1}"
 
-  local v=${GUID:0:8}
-  local bus=$(echo ${v:2:2}${v:0:2}) # Bus, generally not needed
-  v=${GUID:8:8}
-  local vendor=$(echo ${v:2:2}${v:0:2}) # Vendor
-  v=${GUID:16:8}
-  local product=$(echo ${v:2:2}${v:0:2}) # Product
-  v=${GUID:24:8}
-  local version=$(echo ${v:2:2}${v:0:2}) # Version
+  local v=${GUID:0:4}
+  local bus=$(echo ${v:2:2}${v:2}) # Bus, generally not needed
+  v=${GUID:8:4}
+  local vendor=$(echo ${v:2:2}${v:2}) # Vendor
+  v=${GUID:16:4}
+  local product=$(echo ${v:2:2}${v:2}) # Product
+  v=${GUID:24:4}
+  local version=$(echo ${v:2:2}${v:2}) # Version
   echo "^I:.*Bus=${bus} Vendor=${vendor} Product=${product} Version=${version}$"
 }
 
 jc_get_device() {
   local I_REGEX=$( jc_get_device_header ${2} )
   for (( pi = ${1}; pi < 9; pi++ )); do
-    local EE_DEVICE=$( cat /proc/bus/input/devices | grep -Ew -A 5 "$I_REGEX" | grep -E -B 5 "^[ ]*H: Handlers=.*js${pi}.*$" )
+    local EE_DEVICE=$( cat ${INPUT_DEVICES} | grep -Ew -A 5 "$I_REGEX" | grep -E -B 5 "^[ ]*H: Handlers=.*js${pi}.*$" )
     [[ -z "${EE_DEVICE}" ]] && continue
     local EE_NAME=$( echo ${EE_DEVICE} | grep "N: Name=" | cut -d'"' -f2 )
     local EE_JSNUM=$( echo ${EE_DEVICE} | grep "H: Handlers=" |  sed -nE 's|^.*(js[0-9]+).*$|\1|p' )
@@ -69,14 +70,16 @@ jc_get_config() {
 }
 
 jc_get_players() {
+  cat /proc/bus/input/devices > ${INPUT_DEVICES}
   sdljoytest -skip_loop > ${SDLJOYTEST}
 
   for jci in {0..3}; do
     CFG=$( jc_get_config "${jci}" )
-    [[ -z "${CFG}" ]] && CFG=$(( $jci + 1 ))
+    CFG_CLEAN=${CFG}
+    [[ -z "${CFG}" ]] && CFG_CLEAN=$(( $jci + 1 ))
     echo ${CFG}
-#    eval clean_pad ${CFG}
-#    eval set_pad ${CFG}
+    eval clean_pad ${CFG_CLEAN}
+    [[ ! -z "${CFG}" ]] && eval set_pad ${CFG}
   done
 }
 
