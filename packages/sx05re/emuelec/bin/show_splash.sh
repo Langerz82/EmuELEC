@@ -14,6 +14,8 @@
 
 . /etc/profile
 
+ENABLE_LOGGING=0
+
 ACTION_TYPE="${1}"
 PLATFORM="${2}"
 ROMNAME="${3}"
@@ -41,9 +43,12 @@ esac
 
 MODE="$(get_resolution)"
 SPLASHDIR="/storage/roms/splash"
+PLATFORMDIR="/storage/roms/${PLATFORM}"
 
 IMAGE_EXT=(png jpg jpeg bmp gif)
 VIDEO_EXT=(mp4 mkv webm avi mov mpg mpeg)
+#FIND_IMAGE_EXT=$( echo ${IMAGE_EXT[@]} | sed 's/ /\\|/g')
+#FIND_VIDEO_EXT=$( echo ${VIDEO_EXT[@]} | sed 's/ /\\|/g')
 
 COMBINED_EXT=($( echo ${VIDEO_EXT[@]} ${IMAGE_EXT[@]} ))
 FIND_COMBINED_EXT=$( echo ${COMBINED_EXT[@]} | sed 's/ /\\|/g')
@@ -51,6 +56,8 @@ FIND_COMBINED_EXT=$( echo ${COMBINED_EXT[@]} | sed 's/ /\\|/g')
 mkdir -p /tmp/splash
 
 function get_file_ext() {
+  local start_time=$(date +%s%3N)
+  local end_time=
 	local MEDIA_FILES=()
 	if [[ -d "${1}" ]]; then
 		MEDIA_FILES=("$(find ${1} -maxdepth 1 -type f -name "${2}.*" -regex ".*\.\(${FIND_COMBINED_EXT}\)$")")
@@ -60,10 +67,16 @@ function get_file_ext() {
 			local FILE=$(echo "${MEDIA_FILES[@]}" | grep -e "^.*\.${CEXT}$" )
 			local FILE_EXT="${FILE##*.}"
 			if [[ "${CEXT}" == "${FILE_EXT}" ]]; then
-			 echo "${FILE}" && return
+        end_time=$(date +%s%3N)
+        duration_ms=$(( end_time - start_time ))
+        [[ "${ENABLE_LOGGING}" == 1 ]] && echo "get_file_ext execution time in ms: $duration_ms" >> ${EE_LOG}
+			 	echo "${FILE}" && return
 			fi
 		done
 	fi
+  end_time=$(date +%s%3N)
+  duration_ms=$(( end_time - start_time ))
+  [[ "${ENABLE_LOGGING}" == 1 ]] && echo "get_file_ext execution time in ms: $duration_ms" >> ${EE_LOG}
 	echo ""
 }
 
@@ -94,9 +107,13 @@ elif [ "${ACTION_TYPE}" = "gameloading" ]; then
 
  CUSTOM_SPLASH="$(get_ee_setting ee_customsplash)"
 
- SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "${BASEROMNAME_NOEXT}")
- [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "${PLATFORM}")
- [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "launching")
+ EE_SPLASH_PLATFORM_ROMS="$(get_ee_setting ee_splash_loading_platform_roms)"
+
+ if [[ "${EE_SPLASH_PLATFORM_ROMS}" != 0 ]]; then
+   SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "${BASEROMNAME_NOEXT}")
+   [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "${PLATFORM}")
+   [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${SPLASHDIR}/${PLATFORM}" "launching")
+ fi
 
  if [ "${EE_SPLASH_LOADING}" = "0" ]; then
    [[ -z "${SPLASH}" ]] && SPLASH=${GAMELOADINGSPLASH}
@@ -104,6 +121,9 @@ elif [ "${ACTION_TYPE}" = "gameloading" ]; then
    [[ -z "${SPLASH}" ]] && SPLASH="${CUSTOM_SPLASH}"
  elif [ "${EE_SPLASH_LOADING}" = "2" ]; then
 	 [[ -z "${SPLASH}" ]] && SPLASH="$(find "${SPLASHDIR}/random" -maxdepth 1 -type f -regex ".*\.\(${FIND_COMBINED_EXT}\)$" 2>/dev/null | sort -R | head -n 1)"
+ elif [ "${EE_SPLASH_LOADING}" = "3" ]; then
+   [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${PLATFORMDIR}/snap" "${BASEROMNAME_NOEXT}")
+   [[ -z "${SPLASH}" ]] && SPLASH=$(get_file_ext "${PLATFORMDIR}/images" "${BASEROMNAME_NOEXT}-image")
  else
    SPLASH="${GAMELOADINGSPLASH}"
  fi

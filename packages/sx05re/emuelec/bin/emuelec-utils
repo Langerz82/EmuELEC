@@ -471,7 +471,9 @@ function init_app_video() {
 
 	[[ -f "/tmp/EE_LASTVIDEO" ]] && return
 
-	if [[ "${PLATFORM}" == "ports" ]] && [[ "${BASEROMNAME}" == "PortMaster.sh" ]]; then 
+  blank_buffer
+
+	if [[ "${PLATFORM}" == "ports" ]] && [[ "${BASEROMNAME}" == "PortMaster.sh" ]]; then
 		return
 	fi
 	
