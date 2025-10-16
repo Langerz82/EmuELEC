@@ -27,10 +27,10 @@ declare -A GC_PPSSPP_VALUES=(
   [b3]="10-191"
   [b4]="10-193"
   [b5]="10-192"
-  [b6]="10,196"
+  [b6]="10-196"
   [b7]="10-197"
-  [b8]="10,196" # back
-  [b9]="10,197" # start
+  [b8]="10-196" # back
+  [b9]="10-197" # start
   [b10]="" # usually home.
   [b11]="10-106" #leftstick
   [b12]="10-107" #rightstick
@@ -54,10 +54,10 @@ declare -A KB_PPSSPP_VALUES=(
   [h0.8]="1-21" #Left
   [h0.2]="1-22" #Right
 
-  [b0]="1-52"
-  [b1]="1-54"
-  [b2]="1-47"
-  [b3]="1-29"
+  [b0]="1-54"
+  [b1]="1-52"
+  [b2]="1-29"
+  [b3]="1-47"
   [b4]="1-45"
   [b5]="1-51"
   [b6]="1-66"
@@ -144,7 +144,7 @@ set_pad() {
       # CREATE BUTTON MAPS (inlcuding hats).
       if [[ ! -z "${GC_INDEX}" ]]; then
         if [[ "${BTN_TYPE}" == "b"  || "${BTN_TYPE}" == "h" ]]; then
-          if [[ ! -z "${VAL}" ]]; then 
+          if [[ ! -z "${VAL}" ]]; then
             [[ ! -z "${KBVAL}" ]] && echo "${GC_INDEX} = ${KBVAL},${VAL}" >> ${CONFIG_TMP}
             [[ -z "${KBVAL}" ]] && echo "${GC_INDEX} = ${VAL}" >> ${CONFIG_TMP}
           fi
