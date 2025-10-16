@@ -5,6 +5,7 @@
 # Copyright (C) 2022-present Joshua L (https://github.com/Langerz82)
 
 # 08/01/23 - Joshua L - Modified get GUID thanks to shantigilbert.
+# 16/10/25 - Joshua L - Modified uses sdljoytest.
 
 # Source predefined functions and variables
 . /etc/profile
@@ -15,23 +16,20 @@ EMULATOR="${1}"
 
 mkdir -p "/tmp/jc"
 
-#DEBUG_FILE="/tmp/jc/${EMULATOR}_joy_debug.cfg"
-#CACHE_FILE="/tmp/jc/${EMULATOR}_joy_cache.cfg"
-
 SDLJOYTEST="/tmp/jc/sdljoytest.txt"
 INPUT_DEVICES="/tmp/jc/devices.txt"
 
 jc_get_device_header() {
   local GUID="${1}"
 
-  local v=${GUID:0:4}
-  local bus=$(echo ${v:2:2}${v:2}) # Bus, generally not needed
-  v=${GUID:8:4}
-  local vendor=$(echo ${v:2:2}${v:2}) # Vendor
-  v=${GUID:16:4}
-  local product=$(echo ${v:2:2}${v:2}) # Product
-  v=${GUID:24:4}
-  local version=$(echo ${v:2:2}${v:2}) # Version
+  local v=${GUID:0:8}
+  local bus=$(echo ${v:2:2}${v:0:2}) # Bus, generally not needed
+  v=${GUID:8:8}
+  local vendor=$(echo ${v:2:2}${v:0:2}) # Vendor
+  v=${GUID:16:8}
+  local product=$(echo ${v:2:2}${v:0:2}) # Product
+  v=${GUID:24:8}
+  local version=$(echo ${v:2:2}${v:0:2}) # Version
   echo "^I:.*Bus=${bus} Vendor=${vendor} Product=${product} Version=${version}$"
 }
 
@@ -82,5 +80,3 @@ jc_get_players() {
     [[ ! -z "${CFG}" ]] && eval set_pad ${CFG}
   done
 }
-
-jc_get_players
