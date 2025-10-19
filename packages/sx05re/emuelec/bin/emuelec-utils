@@ -491,6 +491,10 @@ function init_app_video() {
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
 	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
+
+  if [[ "${PLATFORM}" == "ports" ]]; then
+    fbfix $( emuelec-utils getmainfb )
+  fi
 }
 
 function end_app_video() {
@@ -507,6 +511,8 @@ function end_app_video() {
 	if [[ "${PLATFORM}" == "setup" ]]; then 
 		return
 	fi
+
+  blank_buffer
 
 	local LAST_VIDEO="$(cat /tmp/EE_LASTVIDEO)"
 
