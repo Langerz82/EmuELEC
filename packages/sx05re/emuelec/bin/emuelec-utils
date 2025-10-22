@@ -524,8 +524,7 @@ function end_app_video() {
 
 	blank_buffer
 
-	rm /tmp/EE_LASTVIDEO
-	rm /tmp/EE_SKIP_APP_VIDEO
+	[[ -f "/tmp/EE_LASTVIDEO" ]] && rm /tmp/EE_LASTVIDEO
 }
 
 function getmainfb() {
