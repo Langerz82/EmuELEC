@@ -238,10 +238,8 @@ case ${PLATFORM} in
         fi
                 ;;
         "amiga"|"amigacd32")
-                if [ "${EMU}" = "AMIBERRY-LITE" ]; then
-            RUNTHIS='${TBASH} amiberry-lite.sh "${ROMNAME}"'
-				elif [ "${EMU}" = "AMIBERRY" ]; then
-            RUNTHIS='${TBASH} amiberry.start "${ROMNAME}"'
+                if [ "${EMU}" = "AMIBERRY-LITE" ] || [ "${EMU}" = "AMIBERRY" ]; then
+            RUNTHIS='${TBASH} amiberry.start "${ROMNAME}" "${EMU}"'
                 fi
                 ;;
         "scummvm")
