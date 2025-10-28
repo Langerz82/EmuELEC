@@ -23,13 +23,15 @@ jc_get_config() {
   cat ${GAMEPAD_INFO_ALL} | grep -E -A5 "^Gamepad js${1}$" > ${GP_FILE}
   [[ -z ${GP_FILE} ]] && echo ' ' && return
 
-  local JOY_UDEVNAME=$( cat ${GP_FILE} | grep -P "^UDEV name:.*" | cut -c18- )
-  local JOY_NAME=$( cat ${GP_FILE} | grep -P "^SDL name:.*" | cut -c18- )
-  local DEVICE_GUID=$( cat ${GP_FILE} | grep -P "^SDL GUID:.*" | cut -c18- )
-  local JOYMAPPING=$( cat ${GP_FILE} | grep -P "^Mapping:.*" | cut -c18- )
-  local INSTANCE_ID=$( cat ${GP_FILE} | grep -P "^Instance ID:.*" | cut -c18- )
+  mapfile -t GAMEPAD_INFO < "${GP_FILE}"
 
-  echo $(( $1 + 1 )) js${1} ${DEVICE_GUID} \"${JOY_NAME}\" \"${JOYMAPPING}\" \"${JOY_UDEVNAME}\"
+  local JOY_UDEV_NAME=$( echo "${GAMEPAD_INFO[1]}" | cut -c18- )
+  local JOY_SDL_NAME=$( echo "${GAMEPAD_INFO[2]}" | cut -c18- )
+  local DEVICE_GUID=$( echo "${GAMEPAD_INFO[3]}" | cut -c18- )
+  local JOYMAPPING=$( echo "${GAMEPAD_INFO[4]}" | cut -c18- )
+  local INSTANCE_ID=$( echo "${GAMEPAD_INFO[5]}" | cut -c18- )
+
+  echo $(( $1 + 1 )) js${1} ${DEVICE_GUID} \"${JOY_UDEV_NAME}\" \"${JOYMAPPING}\" \"${JOY_SDL_NAME}\"
 }
 
 jc_get_players() {
