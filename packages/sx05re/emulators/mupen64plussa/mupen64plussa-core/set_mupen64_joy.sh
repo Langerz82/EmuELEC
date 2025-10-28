@@ -105,7 +105,7 @@ clean_pad() {
 set_pad() {
     local JSI=${2}
     local DEVICE_GUID=${3}
-    local JOY_NAME="${6}"
+    local JOY_NAME="${4}"
 
     local GC_CONFIG="${5}"
     [[ -z ${GC_CONFIG} ]] && return
