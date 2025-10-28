@@ -25,11 +25,11 @@ jc_get_config() {
 
   mapfile -t GAMEPAD_INFO < "${GP_FILE}"
 
-  local JOY_UDEV_NAME=$( echo "${GAMEPAD_INFO[1]}" | cut -c18- )
-  local JOY_SDL_NAME=$( echo "${GAMEPAD_INFO[2]}" | cut -c18- )
-  local DEVICE_GUID=$( echo "${GAMEPAD_INFO[3]}" | cut -c18- )
-  local JOYMAPPING=$( echo "${GAMEPAD_INFO[4]}" | cut -c18- )
-  local INSTANCE_ID=$( echo "${GAMEPAD_INFO[5]}" | cut -c18- )
+  local JOY_UDEV_NAME="$( echo "${GAMEPAD_INFO[1]}" | cut -c18- )"
+  local JOY_SDL_NAME="$( echo "${GAMEPAD_INFO[2]}" | cut -c18- )"
+  local DEVICE_GUID="$( echo "${GAMEPAD_INFO[3]}" | cut -c18- )"
+  local JOYMAPPING="$( echo "${GAMEPAD_INFO[4]}" | cut -c18- )"
+  local INSTANCE_ID="$( echo "${GAMEPAD_INFO[5]}" | cut -c18- )"
 
   echo $(( $1 + 1 )) js${1} ${DEVICE_GUID} \"${JOY_UDEV_NAME}\" \"${JOYMAPPING}\" \"${JOY_SDL_NAME}\"
 }
