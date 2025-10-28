@@ -666,4 +666,7 @@ echo "menu_driver = ${EES}" >> ${RACONF}
 get_setting "bezel"
 [ "${EES}" == "false" ] || [ "${EES}" == "none" ] || [ "${EES}" == "0" ] && ${TBASH} bezels.sh "none" "default" "${ISBEZEL}" "${IRBEZEL}" || ${TBASH} bezels.sh "${PLATFORM}" "${ROM}" "${ISBEZEL}" "${IRBEZEL}"
 
-#sleep 3 && show_splash.sh "stopplayer"
+inverted_ok_cancel=$(get_es_setting bool InvertButtons)
+[[ ${inverted_ok_cancel} == "true" ]] || inverted_ok_cancel="false";
+sed -i "/menu_swap_ok_cancel_buttons =/d" ${RACONF}
+echo "menu_swap_ok_cancel_buttons = ${inverted_ok_cancel}" >> ${RACONF}

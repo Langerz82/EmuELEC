@@ -36,6 +36,7 @@ makeinstall_target() {
   ln -s /storage/roms/bios 			  ${INSTALL}/usr/config/amiberry/kickstarts
   mkdir -p							  ${INSTALL}/usr/config/amiberry/plugins
   cp ${PKG_BUILD}/.${TARGET_NAME}/external/floppybridge/libfloppybridge.so ${INSTALL}/usr/config/amiberry/plugins/
+  cp ${PKG_BUILD}/.${TARGET_NAME}/external/capsimage/*.so ${INSTALL}/usr/config/amiberry/plugins/
 
   # Create links to Retroarch controller files
   # ln -s /usr/share/retroarch/autoconfig/udev/8Bitdo_Pro_SF30_BT_B.cfg "${INSTALL}/usr/config/amiberry/controller/8Bitdo SF30 Pro.cfg"
@@ -44,7 +45,7 @@ makeinstall_target() {
   # Copy binary, scripts & link libcapsimg
   cp -a amiberry* ${INSTALL}/usr/bin/amiberry
   cp -a ${PKG_DIR}/scripts/*          ${INSTALL}/usr/bin
-  ln -sf /usr/lib/libcapsimage.so.5.1 ${INSTALL}/usr/config/amiberry/capsimg.so
+  
   
   UAE="${INSTALL}/usr/config/amiberry/conf/*.uae"
   for i in ${UAE}; do echo -e "gfx_center_vertical=smart\ngfx_center_horizontal=smart" >> ${i}; done

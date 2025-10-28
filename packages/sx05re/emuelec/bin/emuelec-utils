@@ -471,7 +471,9 @@ function init_app_video() {
 
 	[[ -f "/tmp/EE_LASTVIDEO" ]] && return
 
-	if [[ "${PLATFORM}" == "ports" ]] && [[ "${BASEROMNAME}" == "PortMaster.sh" ]]; then 
+  blank_buffer
+
+	if [[ "${PLATFORM}" == "ports" ]] && [[ "${BASEROMNAME}" == "PortMaster.sh" ]]; then
 		return
 	fi
 	
@@ -489,6 +491,10 @@ function init_app_video() {
 	# Show splash screen if enabled
 	local SPL=$(get_ee_setting ee_splash.enabled)
 	[ "${SPL}" -eq "1" ] && ${TBASH} show_splash.sh gameloading "${PLATFORM}" "${ROMNAME}"
+
+  if [[ "${PLATFORM}" == "ports" ]]; then
+    fbfix $( emuelec-utils getmainfb )
+  fi
 }
 
 function end_app_video() {
@@ -506,6 +512,8 @@ function end_app_video() {
 		return
 	fi
 
+  blank_buffer
+
 	local LAST_VIDEO="$(cat /tmp/EE_LASTVIDEO)"
 
 	# Return to default mode
@@ -516,8 +524,7 @@ function end_app_video() {
 
 	blank_buffer
 
-	rm /tmp/EE_LASTVIDEO
-	rm /tmp/EE_SKIP_APP_VIDEO
+	[[ -f "/tmp/EE_LASTVIDEO" ]] && rm /tmp/EE_LASTVIDEO
 }
 
 function getmainfb() {

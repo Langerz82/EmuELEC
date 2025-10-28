@@ -29,13 +29,13 @@ pandora.stylus_offset=0
 pandora.joy_port=0
 pandora.joy_conf=0
 pandora.cpu_speed=600
-pandora.hardfile_path=/storage/.config/amiberry/
-pandora.floppy_path=/storage/.config/amiberry/disks/
-pandora.rom_path=/storage/.config/amiberry/kickstarts/
-amiberry.rom_path=/storage/.config/amiberry/kickstarts/
-amiberry.floppy_path=/storage/.config/amiberry/disks/
-amiberry.hardfile_path=/storage/.config/amiberry/
-amiberry.cd_path=/storage/.config/amiberry/cd32/
+pandora.hardfile_path=/storage/.config/amiberry-lite/
+pandora.floppy_path=/storage/.config/amiberry-lite/disks/
+pandora.rom_path=/storage/.config/amiberry-lite/kickstarts/
+amiberry.rom_path=/storage/.config/amiberry-lite/kickstarts/
+amiberry.floppy_path=/storage/.config/amiberry-lite/disks/
+amiberry.hardfile_path=/storage/.config/amiberry-lite/
+amiberry.cd_path=/storage/.config/amiberry-lite/cd32/
 ; 
 ; *** Controller/Input Configuration
 ; 
@@ -167,6 +167,3 @@ sound_volume_cd=20
 ; *** Misc. Options
 ; 
 bsdsocket_emu=false
-
-gfx_center_vertical=smart
-gfx_center_horizontal=smart

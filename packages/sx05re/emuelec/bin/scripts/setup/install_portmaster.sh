@@ -58,7 +58,7 @@ else
 	-s "/gameList" -t elem -n "gameTMP" -v "" \
 	-s "/gameList/gameTMP" -t elem -n "path" -v "./PortMaster.sh" \
 	-s "/gameList/gameTMP" -t elem -n "name" -v "PortMaster" \
-	-s "/gameList/gameTMP" -t elem -n "image" -v "./media/PortMaster.png" \
+	-s "/gameList/gameTMP" -t elem -n "image" -v "/usr/bin/scripts/setup/setup_images/LaunchPortMaster.png" \
 	-s "/gameList/gameTMP" -t elem -n "rating" -v "10" \
 	-r "//gameTMP" -v "game" \
 	"${XML_FILE}"

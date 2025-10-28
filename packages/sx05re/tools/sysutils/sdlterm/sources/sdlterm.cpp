@@ -215,11 +215,15 @@ int main(int argc, char* argv[]) {
         SDL_RenderFillRect(renderer, &title_bar);
 
         SDL_Surface* title_surface = TTF_RenderText_Blended(font, title.c_str(), white);
-        SDL_Texture* title_texture = SDL_CreateTextureFromSurface(renderer, title_surface);
-        SDL_Rect title_rect = {10, 10, title_surface->w, title_surface->h};
-        SDL_RenderCopy(renderer, title_texture, nullptr, &title_rect);
-        SDL_FreeSurface(title_surface);
-        SDL_DestroyTexture(title_texture);
+        if (title_surface) {
+            SDL_Texture* title_texture = SDL_CreateTextureFromSurface(renderer, title_surface);
+            if (title_texture) {
+                SDL_Rect title_rect = {10, 10, title_surface->w, title_surface->h};
+                SDL_RenderCopy(renderer, title_texture, nullptr, &title_rect);
+                SDL_DestroyTexture(title_texture);
+            }
+            SDL_FreeSurface(title_surface);
+        }
 
         // Draw output lines
         {
@@ -236,8 +240,20 @@ int main(int argc, char* argv[]) {
             int lines_to_draw = std::min(visible_lines, total_lines - scroll_offset);
             for (int i = 0; i < lines_to_draw; ++i) {
                 const std::string& line = output_lines[scroll_offset + i];
+                if (line.empty()) continue;
+                
                 SDL_Surface* text_surface = TTF_RenderText_Blended(font, line.c_str(), white);
+                if (!text_surface) {
+                    std::cerr << "[WARN] Failed to render line: " << line << " - " << TTF_GetError() << std::endl;
+                    continue;
+                }
+                
                 SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+                if (!text_texture) {
+                    SDL_FreeSurface(text_surface);
+                    continue;
+                }
+                
                 SDL_Rect dst = {10, output_start_y + i * line_height, text_surface->w, text_surface->h};
                 SDL_RenderCopy(renderer, text_texture, nullptr, &dst);
                 SDL_FreeSurface(text_surface);
@@ -266,11 +282,15 @@ int main(int argc, char* argv[]) {
                 : "Script finished! Exiting...";
             
             SDL_Surface* done_surface = TTF_RenderText_Blended(font, done_msg, white);
-            SDL_Texture* done_texture = SDL_CreateTextureFromSurface(renderer, done_surface);
-            SDL_Rect done_rect = {10, dm.h - 40, done_surface->w, done_surface->h};
-            SDL_RenderCopy(renderer, done_texture, nullptr, &done_rect);
-            SDL_FreeSurface(done_surface);
-            SDL_DestroyTexture(done_texture);
+            if (done_surface) {
+                SDL_Texture* done_texture = SDL_CreateTextureFromSurface(renderer, done_surface);
+                if (done_texture) {
+                    SDL_Rect done_rect = {10, dm.h - 40, done_surface->w, done_surface->h};
+                    SDL_RenderCopy(renderer, done_texture, nullptr, &done_rect);
+                    SDL_DestroyTexture(done_texture);
+                }
+                SDL_FreeSurface(done_surface);
+            }
         }
 
         SDL_RenderPresent(renderer);

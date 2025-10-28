@@ -840,7 +840,6 @@
           "cores": [
             {
               "name": "AMIBERRY-LITE",
-              "default": true,
               "incompatible": [".m3u"]
             },
             {
@@ -853,7 +852,8 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "puae"
+              "name": "puae",
+              "default": true
             },
             {
               "name": "puae2021"
@@ -889,7 +889,7 @@
           "cores": [
             {
               "name": "AMIBERRY-LITE",
-              "default": true
+              "incompatible": [".m3u"]
             },
             {
               "name": "AMIBERRY",              
@@ -901,7 +901,8 @@
           "name": "libretro",
           "cores": [
             {
-              "name": "puae"
+              "name": "puae",
+              "default": true
             },
             {
               "name": "puae2021"
@@ -987,7 +988,9 @@
         ".com",
         ".exe",
         ".sh",
-        ".zip"
+        ".zip",
+        ".iso",
+        ".cue"
       ],
       "emulators": [
         {
@@ -2319,6 +2322,9 @@
             },
             {
               "name": "mednafen_supafaust"
+            },
+            {
+              "name": "mesen-s"
             }
           ]
         }
@@ -2350,6 +2356,9 @@
             {
               "name": "snes9x",
               "default": true
+            },
+            {
+              "name": "mesen-s"
             }
           ]
         }
@@ -2381,6 +2390,9 @@
             {
               "name": "snes9x",
               "default": true
+            },
+            {
+              "name": "mesen-s"
             }
           ]
         }
@@ -3666,14 +3678,6 @@
               "default": true
             }
           ]
-        },
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "ppsspp"
-            }
-          ]
         }
       ]
     },
@@ -3699,14 +3703,6 @@
             {
               "name": "PPSSPPSDL",
               "default": true
-            }
-          ]
-        },
-        {
-          "name": "libretro",
-          "cores": [
-            {
-              "name": "ppsspp"
             }
           ]
         }
