@@ -16,60 +16,24 @@ EMULATOR="${1}"
 
 mkdir -p "/tmp/jc"
 
-SDLJOYTEST="/tmp/jc/sdljoytest.txt"
-INPUT_DEVICES="/tmp/jc/devices.txt"
-
-jc_get_device_header() {
-  local GUID="${1}"
-
-  local v=${GUID:0:8}
-  local bus=$(echo ${v:2:2}${v:0:2}) # Bus, generally not needed
-  v=${GUID:8:8}
-  local vendor=$(echo ${v:2:2}${v:0:2}) # Vendor
-  v=${GUID:16:8}
-  local product=$(echo ${v:2:2}${v:0:2}) # Product
-  v=${GUID:24:8}
-  local version=$(echo ${v:2:2}${v:0:2}) # Version
-  echo "^I:.*Bus=${bus} Vendor=${vendor} Product=${product} Version=${version}$"
-}
-
-jc_get_device() {
-  local I_REGEX=$( jc_get_device_header ${2} )
-  for (( pi = ${1}; pi < 9; pi++ )); do
-    local EE_DEVICE=$( cat ${INPUT_DEVICES} | grep -Ew -A 5 "$I_REGEX" | grep -E -B 5 "^[ ]*H: Handlers=.*js${pi}.*$" )
-    [[ -z "${EE_DEVICE}" ]] && continue
-    local EE_NAME=$( echo ${EE_DEVICE} | grep "N: Name=" | cut -d'"' -f2 )
-    local EE_JSNUM=$( echo ${EE_DEVICE} | grep "H: Handlers=" |  sed -nE 's|^.*(js[0-9]+).*$|\1|p' )
-    echo ${EE_JSNUM} \"${EE_NAME}\"
-    return
-  done
-}
+GAMEPAD_INFO_ALL="/tmp/jc/gamepad_info.txt"
 
 jc_get_config() {
-  local JOY_NAME=$( cat ${SDLJOYTEST} | grep "Joystick ${1} name" | cut -d"'" -f2 )
-  [[ -z ${JOY_NAME} ]] && return
+  local GP_FILE="/tmp/jc/js${1}"
+  cat ${GAMEPAD_INFO_ALL} | grep -E -A5 "^Gamepad js${1}$" > ${GP_FILE}
+  [[ -z ${GP_FILE} ]] && echo ' ' && return
 
-  local DEVICE_GUID=$( cat ${SDLJOYTEST} | grep "Joystick ${1} Guid" | cut -d" " -f4 )
-  [[ -z ${DEVICE_GUID} ]] && return
+  local JOY_UDEVNAME=$( cat ${GP_FILE} | grep -P "^UDEV name:.*" | cut -c18- )
+  local JOY_NAME=$( cat ${GP_FILE} | grep -P "^SDL name:.*" | cut -c18- )
+  local DEVICE_GUID=$( cat ${GP_FILE} | grep -P "^SDL GUID:.*" | cut -c18- )
+  local JOYMAPPING=$( cat ${GP_FILE} | grep -P "^Mapping:.*" | cut -c18- )
+  local INSTANCE_ID=$( cat ${GP_FILE} | grep -P "^Instance ID:.*" | cut -c18- )
 
-  local JOYMAPPING=$( cat ${SDLJOYTEST} | grep "mapping: ${DEVICE_GUID}" | cut -d" " -f7- )
-  [[ -z ${JOYMAPPING} ]] && return
-
-  local JC_DEVICE=$( jc_get_device ${1} ${DEVICE_GUID} )
-  [[ -z ${JC_DEVICE} ]] && return
-
-  local JSI=$( echo ${JC_DEVICE} | cut -d' ' -f1 )
-  [[ -z ${JSI} ]] && JSI=js0
-
-  local JOY_UDEVNAME=$( echo ${JC_DEVICE} | cut -d'"' -f2 )
-
-  local PLAYER_CFG="$(( $1 + 1 )) ${JSI} ${DEVICE_GUID} \"${JOY_NAME}\" \"${JOYMAPPING}\" \"${JOY_UDEVNAME}\""
-  echo ${PLAYER_CFG}
+  echo $(( $1 + 1 )) js${1} ${DEVICE_GUID} \"${JOY_NAME}\" \"${JOYMAPPING}\" \"${JOY_UDEVNAME}\"
 }
 
 jc_get_players() {
-  cat /proc/bus/input/devices > ${INPUT_DEVICES}
-  sdljoytest -skip_loop > ${SDLJOYTEST}
+  gamepad_info -more > ${GAMEPAD_INFO_ALL}
 
   for jci in {0..3}; do
     CFG=$( jc_get_config "${jci}" )
