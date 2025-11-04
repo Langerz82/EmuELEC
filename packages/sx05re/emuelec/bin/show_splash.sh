@@ -277,10 +277,29 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
        DURATION=3
      fi
      if [ "${PLAYER_VID}" = "ffplay" ]; then
-       ${PLAYER_VID} -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -t ${DURATION} -i "${SPLASH}" >/dev/null 2>&1
+       ${PLAYER_VID} -fs -autoexit -loglevel error -nostats -vf "${FILTER_FILL}" -i "${SPLASH}" >/dev/null 2>&1 &
      else
-       ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" --length=${DURATION} "${SPLASH}" -t 1 >/dev/null 2>&1
+       ${PLAYER_VID} --fullscreen --no-keepaspect --vf="${MPV_VF}" --length=${DURATION} "${SPLASH}" >/dev/null 2>&1 &
      fi
+     PID=$!
+     START_TIME=$(date +%s)
+     # --- Monitor loop ---
+     while true; do
+         # Check if process is still running
+         if ! kill -0 "$PID" 2>/dev/null; then
+             echo "Process $PID has terminated."
+             break
+         fi
+         # Check duration
+         CURRENT_TIME=$( date +%s )
+         ELAPSED=$(( CURRENT_TIME - START_TIME ))
+         if (( ELAPSED >= TIMEOUT )); then
+             echo "Timeout of $TIMEOUT seconds reached. Killing process $PID."
+             kill "$PID" 2>/dev/null
+             break
+         fi
+         sleep 1
+     done
    fi
  fi
 else
