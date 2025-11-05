@@ -294,7 +294,7 @@ if [[ -f "/storage/.config/emuelec/configs/novideo" ]] && [[ ${VIDEO} != "1" ]];
          CURRENT_TIME=$( date +%s )
          ELAPSED=$(( CURRENT_TIME - START_TIME ))
          if (( ELAPSED >= DURATION )); then
-             echo "Timeout of $TIMEOUT seconds reached. Killing process $PID."
+             echo "Timeout of $DURATION seconds reached. Killing process $PID."
              kill "$PID" 2>/dev/null
              break
          fi
