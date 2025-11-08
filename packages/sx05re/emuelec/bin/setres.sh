@@ -38,6 +38,13 @@ for fb in /sys/class/graphics/fb*/virtual_size; do
     fi
 done
 
+blank_buffer() {
+# Clears screen buffer
+  # Blank the buffer.
+  dd if=/dev/zero of=/dev/fb0 bs=256K conv=sync,noerror,notrunc > /dev/null 2>&1
+  dd if=/dev/zero of=/dev/fb1 bs=256K conv=sync,noerror,notrunc > /dev/null 2>&1
+}
+
 switch_resolution()
 {
   local MODE=${1}
@@ -113,10 +120,10 @@ set_main_framebuffer() {
 
   if [[ -n "${FBW}" && "${FBW}" > 0 && -n "${FBH}" && "${FBH}" > 0 ]]; then
     MFBH=$(( FBH*2 ))
-    fbset -fb /dev/fb$max_fb -g ${FBW} ${FBH} ${FBW} ${MFBH} ${BPP}
-    [[ -f "/sys/class/graphics/fb$max_fb/free_scale_axis" ]] && echo 0 0 $(( FBW-1 )) $(( FBH-1 )) > /sys/class/graphics/fb$max_fb/free_scale_axis
-    [[ -f "/sys/class/graphics/fb$max_fb/free_scale" ]] && echo 0 > /sys/class/graphics/fb$max_fb/free_scale
-    [[ -f "/sys/class/graphics/fb$max_fb/freescale_mode" ]] && echo 0 > /sys/class/graphics/fb$max_fb/freescale_mode
+    fbset -fb /dev/fb${max_fb} -g ${FBW} ${FBH} ${FBW} ${MFBH} ${BPP}
+    [[ -f "/sys/class/graphics/fb${max_fb}/free_scale_axis" ]] && echo 0 0 $(( FBW-1 )) $(( FBH-1 )) > /sys/class/graphics/fb${max_fb}/free_scale_axis
+    [[ -f "/sys/class/graphics/fb${max_fb}/free_scale" ]] && echo 0 > /sys/class/graphics/fb${max_fb}/free_scale
+    [[ -f "/sys/class/graphics/fb${max_fb}/freescale_mode" ]] && echo 0 > /sys/class/graphics/fb${max_fb}/freescale_mode
   fi
 }
 
@@ -124,9 +131,9 @@ set_fb_borders() {
 	local CUSTOM_OFFSETS=( ${1} ${2} ${3} ${4} )
 	local COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
 	if [[ "${COUNT_ARGS}" == "4" ]]; then
-	  echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb$max_fb/window_axis
-	  echo 1 > /sys/class/graphics/fb$max_fb/freescale_mode
-	  echo 0x10001 > /sys/class/graphics/fb$max_fb/free_scale
+	  echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb${max_fb}/window_axis
+	  echo 1 > /sys/class/graphics/fb${max_fb}/freescale_mode
+	  echo 0x10001 > /sys/class/graphics/fb${max_fb}/free_scale
 	fi
 }
 
@@ -139,6 +146,11 @@ MODE=$( cat ${FILE_MODE} )
 BPP=32
 
 ES_MODE=""
+
+if [[ $# == 0 ]]; then
+	MODE=$(cat /sys/class/display/mode)
+	ES_MODE="ee_es."
+fi
 
 if [[ $# == 1 ]]; then
 	MODE=${1}
@@ -158,6 +170,11 @@ fi
 
 FBW=0
 FBH=0
+
+if [[ "${EE_DEVICE}" == "Amlogic" ]]; then
+  FBW=1920
+  FBH=1080
+fi
 
 # The current display mode before it may get changed below.
 OLD_MODE=$( cat ${FILE_MODE} )
@@ -191,13 +208,10 @@ if [[ "${MODE}" == *"cvbs" ]]; then
 fi
 
 CUSTOM_RES=$(get_ee_setting ${ES_MODE}framebuffer "${PLATFORM}" "${ROMNAME}")
-#[[ -z "${CUSTOM_RES}" ]] && CUSTOM_RES=$(get_ee_setting ee_framebuffer.${MODE})
 if [[ ! -z "${CUSTOM_RES}" ]]; then
   declare -a RES=($(echo "${CUSTOM_RES}"))
-  if [[ ! -z "${RES[@]}" ]]; then
-      FBW=${RES[0]}
-      FBH=${RES[1]}
-  fi
+  FBW=${RES[0]}
+  FBH=${RES[1]}
 fi
 
 if [[ ${OLD_MODE} != ${MODE} ]]; then
@@ -212,24 +226,16 @@ FBH=${SIZE[1]}
 PSW=${SIZE[2]}
 PSH=${SIZE[3]}
 
-if [[ "${EE_DEVICE}" == "Amlogic" ]]; then
-  FBW=1920
-  FBH=1080
-fi
-
 # Once we know the Width and Height is valid numbers we set the primary display
 # buffer, and we multiply the 2nd height by a factor of 2 I assume for interlaced 
 # support.
 CURRENT_SIZE="$( fbset -fb /dev/fb${max_fb} | grep geometry | cut -d' ' -f2-3 )"
 NEW_SIZE="${FBW} ${FBH}"
 if [[ "${CURRENT_SIZE}" != "${NEW_SIZE}" ]]; then
-	emuelec-utils blank_buffer
+	blank_buffer
   echo "SET MAIN FRAME BUFFER"
   set_main_framebuffer ${FBW} ${FBH} 
 fi
-
-# Now that the primary buffer has been acquired we blank it again because the new
-# memory allocated, may contain garbage artifact data.
 
 # Legacy code - I have no idea about these values but apparently they should
 # make cvbs display properly. The values go over the real values which leads me
@@ -240,7 +246,6 @@ if [[ -f "/storage/.config/${MODE}_offsets" ]]; then
 fi
 
 OFFSET_SETTING=$(get_ee_setting ${ES_MODE}framebuffer_border "${PLATFORM}" "${ROMNAME}")
-#[[ -z "${OFFSET_SETTING}" ]] && OFFSET_SETTING="$(get_ee_setting ${MODE}.ee_offsets)"
 if [[ ! -z "${OFFSET_SETTING}" ]]; then
   CUSTOM_OFFSETS=( ${OFFSET_SETTING} )
 	CUSTOM_OFFSETS[2]=$(( ${PSW} - CUSTOM_OFFSETS[2] - 1 ))
@@ -250,6 +255,11 @@ fi
 # Now that the primary buffer has been acquired we blank it again because the new
 # memory allocated, may contain garbage artifact data.
 COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
+if [[ "${COUNT_ARGS}" == "2" ]]; then
+  CUSTOM_OFFSETS[2]=$(( ${PSW} - CUSTOM_OFFSETS[0] - 1 ))
+	CUSTOM_OFFSETS[3]=$(( ${PSH} - CUSTOM_OFFSETS[1] - 1 ))
+fi
+
 if [[ -z "${OFFSET_SETTING}" ]] && [[ "${MODE}" == *"cvbs" ]]; then
   if [[ "${COUNT_ARGS}" == "0" ]]; then
     [[ "${MODE}" == "480cvbs" ]] && CUSTOM_OFFSETS="30 10 669 469"
