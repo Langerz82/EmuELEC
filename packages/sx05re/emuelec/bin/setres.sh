@@ -131,12 +131,11 @@ set_fb_borders() {
 	local CUSTOM_OFFSETS=( ${1} ${2} ${3} ${4} )
 	local COUNT_ARGS=${#CUSTOM_OFFSETS[@]}
 	if [[ "${COUNT_ARGS}" == "4" ]]; then
-	  echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb${max_fb}/window_axis
-	  echo 1 > /sys/class/graphics/fb${max_fb}/freescale_mode
-	  echo 0x10001 > /sys/class/graphics/fb${max_fb}/free_scale
+	  [[ -f "/sys/class/graphics/fb${max_fb}/window_axis" ]] && echo ${CUSTOM_OFFSETS[@]} > /sys/class/graphics/fb${max_fb}/window_axis
+	  [[ -f "/sys/class/graphics/fb${max_fb}/freescale_mode" ]] && echo 1 > /sys/class/graphics/fb${max_fb}/freescale_mode
+	  [[ -f "/sys/class/graphics/fb${max_fb}/free_scale" ]] && echo 0x10001 > /sys/class/graphics/fb${max_fb}/free_scale
 	fi
 }
-
 
 
 # Here we initialize any arguments and variables to be used in the script.
