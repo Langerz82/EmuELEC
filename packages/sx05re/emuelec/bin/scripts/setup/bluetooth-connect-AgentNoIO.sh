@@ -9,6 +9,8 @@
 ee_console disable
 ee_console enable
 
+pkill emuelec-bluetoo
+
 gptokeyb -customkill "pkill emuelec-bluetoo" &
 
 emuelec-bluetooth-NoInputNoOutput
