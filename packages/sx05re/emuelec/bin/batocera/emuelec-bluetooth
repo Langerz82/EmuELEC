@@ -321,7 +321,7 @@ if __name__ == "__main__":
         exit()
 
     bt.power = True
-    bt.agent = True    
+    bt.agent = True
     bt.discoverable = True
     bt.pairable = True
 
