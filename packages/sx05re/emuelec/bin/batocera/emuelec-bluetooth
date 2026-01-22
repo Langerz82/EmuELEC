@@ -321,8 +321,8 @@ if __name__ == "__main__":
         exit()
 
     bt.power = True
+    bt.agent = True    
     bt.discoverable = True
-    bt.agent = True
     bt.pairable = True
 
     start_time = time.perf_counter()
