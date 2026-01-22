@@ -149,10 +149,11 @@ class BluetoothCTL:
 
     def scan_async(self, timeout=10):
         # using stdbuf to flush buffer and get output immediately (bluetoothctl issue)
+        params = " --agent NoInputNoOutput "
         cmd = (
-            "stdbuf -oL bluetoothctl --timeout " + str(timeout) + " scan on"
+            "stdbuf -oL bluetoothctl " + params + "--timeout " + str(timeout) + " scan on"
             if timeout > 0
-            else "stdbuf -oL bluetoothctl -- scan on"
+            else "stdbuf -oL bluetoothctl " + params + "-- scan on"
         )
         process = Popen(cmd.split(), stdout=PIPE, universal_newlines=True)
         while True:
