@@ -142,19 +142,18 @@ class BluetoothCTL:
 
     @pairable.setter
     def agent(self, value):
-        ShellIO.execute(["bluetoothctl", "agent", value])
-        if value != "off":
-            ShellIO.execute(["bluetoothctl", "agent", "on" if value else "off"])
+        ShellIO.execute(["bluetoothctl", "agent", "on" if value else "off"])
 
     def scan(self, timeout=10):
         ShellIO.execute(["bluetoothctl", "--timeout", str(timeout), "scan", "on"])
 
     def scan_async(self, timeout=10):
         # using stdbuf to flush buffer and get output immediately (bluetoothctl issue)
+        params = " --agent NoInputNoOutput "
         cmd = (
-            "stdbuf -oL bluetoothctl --timeout " + str(timeout) + " scan on"
+            "stdbuf -oL bluetoothctl " + params + "--timeout " + str(timeout) + " scan on"
             if timeout > 0
-            else "stdbuf -oL bluetoothctl -- scan on"
+            else "stdbuf -oL bluetoothctl " + params + "-- scan on"
         )
         process = Popen(cmd.split(), stdout=PIPE, universal_newlines=True)
         while True:
@@ -310,10 +309,6 @@ if __name__ == "__main__":
     if len(sys.argv) >= 2:
         SCAN_TIME = int(sys.argv[1])
 
-    BT_AGENT_TYPE = "NoInputNoOutput"
-    if len(sys.argv) >= 3:
-        BT_AGENT_TYPE = sys.argv[2]
-
     print("running scan for " + str(SCAN_TIME) + " seconds.")
     bt = BluetoothCTL()
 
@@ -327,7 +322,7 @@ if __name__ == "__main__":
 
     bt.power = True
     bt.discoverable = True
-    bt.agent = BT_AGENT_TYPE
+    bt.agent = True
     bt.pairable = True
 
     start_time = time.perf_counter()
