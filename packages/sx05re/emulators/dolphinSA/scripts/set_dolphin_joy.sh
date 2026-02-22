@@ -9,9 +9,10 @@
 # Configure ADVMAME players based on ES settings
 CONFIG_DIR="/storage/.config/emuelec/configs/dolphin-emu"
 CONFIG=${CONFIG_DIR}/GCPadNew.ini
+WII_CONFIG=${CONFIG_DIR}/WiimoteNew.ini
 MAIN_CONFIG=${CONFIG_DIR}/Dolphin.ini
 CONFIG_TMP=/tmp/jc/GCPadNew.tmp
-
+WII_CONFIG_TMP=/tmp/jc/WiimoteNew.tmp
 
 source joy_common.sh "dolphin"
 
@@ -22,10 +23,10 @@ H0_AXIS1=$(( BTN_H0+0 ))
 H0_AXIS2=$(( BTN_H0+1 ))
 
 declare -A GC_DOLPHIN_VALUES=(
-[h0.1]="Axis ${H0_AXIS2}-"
-[h0.4]="Axis ${H0_AXIS2}+"
-[h0.8]="Axis ${H0_AXIS1}-"
-[h0.2]="Axis ${H0_AXIS1}+"
+[h0.1]="Hat 0 N"
+[h0.4]="Hat 0 S"
+[h0.8]="Hat 0 W"
+[h0.2]="Hat 0 E"
 [b0]="Button 0"
 [b1]="Button 1"
 [b2]="Button 2"
@@ -43,7 +44,6 @@ declare -A GC_DOLPHIN_VALUES=(
 [b14]="Button 14"
 [b15]="Button 15"
 [b16]="Button 16"
-
 )
 
 declare -A GC_DOLPHIN_BUTTONS=(
@@ -62,6 +62,26 @@ declare -A GC_DOLPHIN_BUTTONS=(
   [guide]="Buttons/Hotkey"
 )
 
+declare -A WII_DOLPHIN_BUTTONS=(
+  [dpleft]="D-Pad/Left"
+  [dpright]="D-Pad/Right"
+  [dpup]="D-Pad/Up"
+  [dpdown]="D-Pad/Down"
+  [x]="Buttons/Y"
+  [y]="Buttons/X"
+  [a]="Buttons/B"
+  [b]="Buttons/A"
+  [leftshoulder]="Triggers/L"
+  [rightshoulder]="Triggers/R"
+  [back]="Buttons/-"
+  [start]="Buttons/+"
+  [lefttrigger]="Buttons/L-Analog"
+  [righttrigger]="Buttons/R-Analog"
+  [guide]="Buttons/Home"
+  [leftstick]="Buttons/ZL"
+  [rightstick]="Buttons/ZR"
+)
+
 BTN_SWAP_XY=$(get_ee_setting dolphin_joy_swap_xy)
 if [[ "${BTN_SWAP_XY}" == "1" ]]; then
   GC_DOLPHIN_BUTTONS[x]="Buttons/X"
@@ -72,6 +92,17 @@ if [[ "${BTN_SWAP_AB}" == "1" ]]; then
   GC_DOLPHIN_BUTTONS[a]="Buttons/A"
   GC_DOLPHIN_BUTTONS[b]="Buttons/B"
 fi
+
+declare -A WII_DOLPHIN_STICKS=(
+  ["leftx,0"]="Left Stick/Left"
+  ["leftx,1"]="Left Stick/Right"
+  ["lefty,0"]="Left Stick/Up"
+  ["lefty,1"]="Left Stick/Down"
+  ["rightx,0"]="Right Stick/Left"
+  ["rightx,1"]="Right Stick/Right"
+  ["righty,0"]="Right Stick/Up"
+  ["righty,1"]="Right Stick/Down"
+)
 
 declare -A GC_DOLPHIN_STICKS=(
   ["leftx,0"]="Main Stick/Left"
@@ -84,29 +115,32 @@ declare -A GC_DOLPHIN_STICKS=(
   ["righty,1"]="C-Stick/Down"
 )
 
+# Declare an associative array to store ID counts
+declare -A id_counts=()
+
+# Function to add or increment an ID
+add_or_increment_id() {
+    local id=$1
+
+    # Check if the ID already exists as a key in the associative array
+    if [[ -v id_counts["${id}"] ]]; then
+        # If present, increment its value (count)
+        (( id_counts["${id}"]++ ))
+    else
+        # If not present, add it to the array and set the count to 1
+        id_counts["$id"]=0
+    fi
+}
+
 # Cleans all the inputs for the gamepad with name ${GAMEPAD} and player ${1}
 clean_pad() {
-  [[ -f "${CONFIG_TMP}" ]] && rm "${CONFIG_TMP}"
-  local START_DELETING=0
-  local GC_REGEX="\[GCPad${1}\]"
-  local LN=1
-  [[ ! -f "${CONFIG}" ]] && return
-  while read -r line; do
-    if [[ "${line}" =~ \[.+\] ]]; then
-      START_DELETING=0
-    fi
-    local header=$(echo "${line}" | grep -E "${GC_REGEX}" )
-    if [[ ! -z "${header}" ]]; then
-      START_DELETING=1
-    fi    
-    if [[ "${START_DELETING}" == "1" ]]; then
-      [[ "${line}" =~ ^(.*)+Stick\/Modifier(.*)+$ ]] && echo "${line}" >> ${CONFIG_TMP}
-      [[ "${line}" =~ ^(.*)+Stick\/Dead(.*)+$ ]] && echo "${line}" >> ${CONFIG_TMP}
-      sed -i "${LN} d" "${CONFIG}"
-    else
-      LN=$(( ${LN} + 1 ))  
-    fi
-  done < ${CONFIG}
+
+  declare -a params=(".*Stick\/Modifier\/Range" ".*Stick\/Dead\ Zone")
+  jc_wipe_config_sub_heading "${CONFIG}" "[GCPad${1}]" "${CONFIG_TMP}" "${params[@]}"
+
+  jc_wipe_config_sub_heading "${WII_CONFIG}" "[Wiimote${1}]" "${WII_CONFIG_TMP}"
+  echo "[Wiimote${1}]" >> ${WII_CONFIG}
+  echo "Source = 0" >> ${WII_CONFIG}
 }
 
 # Sets pad depending on parameters.
@@ -125,11 +159,20 @@ set_pad() {
   echo "GC_CONFIG=${GC_CONFIG}"
   [[ -z ${GC_CONFIG} ]] && return
 
+  sed -i "/\[Wiimote${1}\]/,+1 d" ${WII_CONFIG}
+
   local GC_MAP=$(echo ${GC_CONFIG} | cut -d',' -f3-)
 
   echo "[GCPad${1}]" >> ${CONFIG}
-  declare -i JOY_INDEX=$(( ${1} - 1 ))
+
+  add_or_increment_id "${JOY_NAME}"
+  local JOY_INDEX=${id_counts[${JOY_NAME}]}
   echo "Device = evdev/${JOY_INDEX}/${JOY_NAME}" >> ${CONFIG}
+
+  echo "[Wiimote${1}]" >> ${WII_CONFIG}
+  echo "Device = evdev/${JOY_INDEX}/${JOY_NAME}" >> ${WII_CONFIG}
+  echo "Extension = Classic" >> ${WII_CONFIG}
+  echo "Source = 1" >> ${WII_CONFIG}
 
   set -f
   local GC_ARRAY=(${GC_MAP//,/ })
@@ -139,33 +182,48 @@ set_pad() {
       local BUTTON_INDEX=$(echo ${REC} | cut -d ":" -f 1)
       local TVAL=$(echo ${REC} | cut -d ":" -f 2)
       local BUTTON_VAL=${TVAL:1}
-      local GC_INDEX="${GC_DOLPHIN_BUTTONS[${BUTTON_INDEX}]}"
       local BTN_TYPE=${TVAL:0:1}
       local VAL="${GC_DOLPHIN_VALUES[${TVAL}]}"
 
       # CREATE BUTTON MAPS (inlcuding hats).
+      local GC_INDEX="${GC_DOLPHIN_BUTTONS[${BUTTON_INDEX}]}"
       if [[ ! -z "${GC_INDEX}" ]]; then
         if [[ "${BTN_TYPE}" == "b"  || "${BTN_TYPE}" == "h" ]]; then
-          [[ ! -z "${VAL}" ]] && echo "${GC_INDEX} = ${VAL}" >> ${CONFIG_TMP}
+          [[ ! -z "${VAL}" ]] && echo "${GC_INDEX} = \`${VAL}\`" >> ${CONFIG_TMP}
         fi
         if [[ "${BTN_TYPE}" == "a" ]]; then
-          echo "${GC_INDEX} = Axis ${BUTTON_VAL}+" >> ${CONFIG_TMP}
-        fi        
+          echo "${GC_INDEX} = \`Axis ${BUTTON_VAL}+\`" >> ${CONFIG_TMP}
+        fi
+      fi
+
+      # Wii CREATE BUTTON MAPS (inlcuding hats).
+      local WII_INDEX="${WII_DOLPHIN_BUTTONS[${BUTTON_INDEX}]}"
+      if [[ ! -z "${WII_INDEX}" ]]; then
+        if [[ "${BTN_TYPE}" == "b"  || "${BTN_TYPE}" == "h" ]]; then
+          [[ ! -z "${VAL}" ]] && echo "Classic/${WII_INDEX} = \`${VAL}\`" >> ${WII_CONFIG_TMP}
+        fi
+        if [[ "${BTN_TYPE}" == "a" ]]; then
+          echo "Classic/${WII_INDEX} = \`Axis ${BUTTON_VAL}-+\`" >> ${WII_CONFIG_TMP}
+        fi
       fi
 
       # Create Axis Maps
       case ${BUTTON_INDEX} in
-        lefttrigger|righttrigger)
-          if [[ "${BTN_TYPE}" == "a" ]]; then
-            VAL=${BUTTON_VAL}
-            echo "${GC_INDEX} = Axis ${VAL}+" >> ${CONFIG_TMP}
-          fi
-          ;;
         leftx|lefty|rightx|righty)
           GC_INDEX="${GC_DOLPHIN_STICKS[${BUTTON_INDEX},0]}"
-          echo "${GC_INDEX} = Axis ${BUTTON_VAL}-" >> ${CONFIG_TMP}
+          echo "${GC_INDEX} = \`Axis ${BUTTON_VAL}-\`" >> ${CONFIG_TMP}
           GC_INDEX="${GC_DOLPHIN_STICKS[${BUTTON_INDEX},1]}"
-          echo "${GC_INDEX} = Axis ${BUTTON_VAL}+" >> ${CONFIG_TMP}
+          echo "${GC_INDEX} = \`Axis ${BUTTON_VAL}+\`" >> ${CONFIG_TMP}
+          ;;
+      esac
+
+      # Wii Create Axis Maps
+      case ${BUTTON_INDEX} in
+        leftx|lefty|rightx|righty)
+          WII_INDEX="${WII_DOLPHIN_STICKS[${BUTTON_INDEX},0]}"
+          echo "Classic/${WII_INDEX} = \`Axis ${BUTTON_VAL}-\`" >> ${WII_CONFIG_TMP}
+          WII_INDEX="${WII_DOLPHIN_STICKS[${BUTTON_INDEX},1]}"
+          echo "Classic/${WII_INDEX} = \`Axis ${BUTTON_VAL}+\`" >> ${WII_CONFIG_TMP}
           ;;
       esac
   done
@@ -188,7 +246,19 @@ set_pad() {
   [[ -z "${GC_RECORD}" ]] && echo "${JOYSTICK}/Dead Zone = 25.000000000000000" >> ${CONFIG_TMP}
 
   cat "${CONFIG_TMP}" | sort >> ${CONFIG}
+
+  RUMBLE=$(get_ee_setting ee_rumble_strength)
+  [[ -z "${RUMBLE}" ]] && RUMBLE=0
+  echo "Rumble/Motor = `Strong`|`Weak`" >> ${CONFIG}
+  echo "Rumble/Motor/Range = ${RUMBLE}" >> ${CONFIG}
+
   rm "${CONFIG_TMP}"
+
+  cat "${WII_CONFIG_TMP}" | sort >> ${WII_CONFIG}
+  echo "Rumble/Motor = `Strong`|`Weak`" >> ${WII_CONFIG}
+  echo "Rumble/Motor/Range = ${RUMBLE}" >> ${WII_CONFIG}
+
+  rm "${WII_CONFIG_TMP}"
 }
 
 init_config() {
@@ -202,7 +272,6 @@ init_config() {
     sed -i "${LN} i SIDevice0=6\nSIDevice1=6\nSIDevice2=6\nSIDevice3=6" "${MAIN_CONFIG}"
   fi
 }
-
 
 init_config
 
