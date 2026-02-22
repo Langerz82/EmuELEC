@@ -20,7 +20,7 @@ GAMEPAD_INFO_ALL="/tmp/jc/gamepad_info.txt"
 
 jc_get_config() {
   local GP_FILE="/tmp/jc/js${1}"
-  cat ${GAMEPAD_INFO_ALL} | grep -E -A5 "^Gamepad js${1}$" > ${GP_FILE}
+  cat ${GAMEPAD_INFO_ALL} | grep -E -A6 "^Gamepad js${1}$" > ${GP_FILE}
   [[ -z ${GP_FILE} ]] && echo ' ' && return
 
   mapfile -t GAMEPAD_INFO < "${GP_FILE}"
