@@ -30,8 +30,9 @@ jc_get_config() {
   local DEVICE_GUID="$( echo "${GAMEPAD_INFO[3]}" | cut -c18- )"
   local JOYMAPPING="$( echo "${GAMEPAD_INFO[4]}" | cut -c18- )"
   local INSTANCE_ID="$( echo "${GAMEPAD_INFO[5]}" | cut -c18- )"
+  local JS_INDEX="$( echo "${GAMEPAD_INFO[6]}" | cut -c18- )"
 
-  echo $(( $1 + 1 )) js${1} ${DEVICE_GUID} \"${JOY_UDEV_NAME}\" \"${JOYMAPPING}\" \"${JOY_SDL_NAME}\"
+  echo $(( $1 + 1 )) js${JS_INDEX} ${DEVICE_GUID} \"${JOY_UDEV_NAME}\" \"${JOYMAPPING}\" \"${JOY_SDL_NAME}\"
 }
 
 jc_get_players() {
