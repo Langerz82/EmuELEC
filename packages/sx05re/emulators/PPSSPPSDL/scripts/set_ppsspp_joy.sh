@@ -14,7 +14,7 @@ CONFIG=${CONFIG_DIR}/controls.ini
 CONFIG_TMP=/tmp/jc/ppsspp.tmp
 
 
-source joy_common.sh "ppsspp"
+source joy_common.sh "ppsspp" "fixed_order"
 
 declare -A GC_PPSSPP_VALUES=(
   [h0.1]="10-19" #Up
