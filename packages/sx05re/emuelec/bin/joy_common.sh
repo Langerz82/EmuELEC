@@ -18,6 +18,20 @@ mkdir -p "/tmp/jc"
 
 GAMEPAD_INFO_ALL="/tmp/jc/gamepad_info.txt"
 
+jc_set_record() {
+  local FILE=$1
+  local HEADER=$2
+  local KEY=$3
+  local VALUE=$4
+
+  local rec=$( cat "${FILE}" | grep -e "^${KEY} *= *.*$" )
+  if [[ -z "${rec}" ]]; then
+    sed -i "/${HEADER}/a ${KEY} = ${RUMBLE}" "${EMU_FILE}"
+  else
+    sed -i "s/^${KEY} *= *.*$/${KEY} = ${VALUE}/g" "${EMU_FILE}"
+  fi
+}
+
 jc_get_config() {
   local GP_FILE="/tmp/jc/js${1}"
   cat ${GAMEPAD_INFO_ALL} | grep -E -A5 "^Gamepad js${1}$" > ${GP_FILE}
