@@ -105,6 +105,15 @@ echo "user_language = ${LANGEMUELEC}" >> ${TMP_RACONF}
 
 write_log "Set Language to ${EE_LANG} Retroarch: ${LANGEMUELEC}"
 
+EE_RUMBLE=$(get_ee_setting ee_rumble_strength)
+[[ -z "${EE_RUMBLE}" ]] && EE_RUMBLE=0
+EE_RUMBLE_VAL=0
+[[ "${EE_RUMBLE}" -gt 0 ]] && EE_RUMBLE_VAL=1
+write_bool "input_enable_vibration" "${EE_RUMBLE_VAL}"
+
+echo "input_vibration_vibe_strength  = \"${EE_RUMBLE}\"" >> ${TMP_RACONF}
+write_log "Set Input Vibration Strength to ${EE_RUMBLE}"
+
 # For the new snapshot save state manager we need to set the path to be /storage/roms/savestates/[PLATFORM]
 mkdir -p "/storage/roms/savestates/${PLATFORM}"
 
