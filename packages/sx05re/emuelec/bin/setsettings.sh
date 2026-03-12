@@ -573,6 +573,8 @@ for i in 1 2 3 4 5; do
 if [[ "${CONTROLLERS}" == *p${i}* ]]; then
 PINDEX="${CONTROLLERS#*-p${i}index }"
 PINDEX="${PINDEX%% -p${i}guid*}"
+PINDEX_UDEV=$(sdl_udev_joystick_map "${PINDEX}")
+[[ -n "${PINDEX_UDEV}" ]] && PINDEX=${PINDEX_UDEV}
 echo "input_player${i}_joypad_index = \"${PINDEX}\"" >> ${RACONF}
 
 # Setting controller type for different cores
