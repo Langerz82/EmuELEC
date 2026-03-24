@@ -20,4 +20,5 @@ mkdir -p ${INSTALL}/usr/bin
 cp -rf test_gamepad_SDL2 ${INSTALL}/usr/bin/sdljoytest
 cp -rf map_gamepad_SDL2 ${INSTALL}/usr/bin/sdljoymap
 cp -rf gamepad_info ${INSTALL}/usr/bin/gamepad_info
+cp -rf sdl_ra_joystick_map ${INSTALL}/usr/bin/sdl_ra_joystick_map
 }
