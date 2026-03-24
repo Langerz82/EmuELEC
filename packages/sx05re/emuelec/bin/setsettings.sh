@@ -83,27 +83,35 @@ case "${EE_LANG}" in
     pt_BR|pt_PT) LANGEMUELEC="7" ;;
     en_US|en_GB) LANGEMUELEC="0" ;;
     fr_FR)       LANGEMUELEC="2" ;;
-    es_ES|es_MX) LANGEMUELEC="3" ;;
+    es_ES|es_MX|eu_ES) LANGEMUELEC="3" ;;
     de_DE)       LANGEMUELEC="4" ;;
     it_IT)       LANGEMUELEC="5" ;;
-    eu_ES)       LANGEMUELEC="21" ;;
-    tr_TR)       LANGEMUELEC="17" ;;
+    tr_TR)       LANGEMUELEC="18" ;;
     zh_CN)       LANGEMUELEC="12" ;;
     zh_TW)       LANGEMUELEC="11" ;;
     ko_KR)       LANGEMUELEC="10" ;;
-    ja_JP)       LANGEMUELEC="9" ;;
-    ru_RU)       LANGEMUELEC="14" ;;
-    nl_NL)       LANGEMUELEC="8" ;;
-    pl_PL)       LANGEMUELEC="15" ;;
-    sv_SE)       LANGEMUELEC="16" ;;
-    hu_HU)       LANGEMUELEC="19" ;;
-    cs_CZ)       LANGEMUELEC="20" ;;
+    ja_JP)       LANGEMUELEC="1" ;;
+    ru_RU)       LANGEMUELEC="9" ;;
+    nl_NL)       LANGEMUELEC="6" ;;
+    pl_PL)       LANGEMUELEC="14" ;;
+    sv_SE)       LANGEMUELEC="25" ;;
+    hu_HU)       LANGEMUELEC="31" ;;
+    cs_CZ)       LANGEMUELEC="27" ;;
     *)           LANGEMUELEC="0" ;;
 esac
 
 echo "user_language = ${LANGEMUELEC}" >> ${TMP_RACONF}
 
 write_log "Set Language to ${EE_LANG} Retroarch: ${LANGEMUELEC}"
+
+EE_RUMBLE=$(get_ee_setting ee_rumble_strength)
+[[ -z "${EE_RUMBLE}" ]] && EE_RUMBLE=0
+EE_RUMBLE_VAL=0
+[[ "${EE_RUMBLE}" -gt 0 ]] && EE_RUMBLE_VAL=1
+write_bool "input_enable_vibration" "${EE_RUMBLE_VAL}"
+
+echo "input_vibration_vibe_strength  = \"${EE_RUMBLE}\"" >> ${TMP_RACONF}
+write_log "Set Input Vibration Strength to ${EE_RUMBLE}"
 
 # For the new snapshot save state manager we need to set the path to be /storage/roms/savestates/[PLATFORM]
 mkdir -p "/storage/roms/savestates/${PLATFORM}"
@@ -573,6 +581,8 @@ for i in 1 2 3 4 5; do
 if [[ "${CONTROLLERS}" == *p${i}* ]]; then
 PINDEX="${CONTROLLERS#*-p${i}index }"
 PINDEX="${PINDEX%% -p${i}guid*}"
+PINDEX_UDEV=$(sdl_ra_joystick_map "${PINDEX}")
+[[ -n "${PINDEX_UDEV}" ]] && PINDEX=${PINDEX_UDEV}
 echo "input_player${i}_joypad_index = \"${PINDEX}\"" >> ${RACONF}
 
 # Setting controller type for different cores
