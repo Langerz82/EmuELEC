@@ -43,22 +43,24 @@ pre_make_target() {
 
 
 makeinstall_target() {
-  mkdir -p ${INSTALL}/usr/bin
+  	mkdir -p ${INSTALL}/usr/bin
     cp ${PKG_DIR}/scripts/*.sh ${INSTALL}/usr/bin
     cp `find . -name "PPSSPPSDL" | xargs echo` ${INSTALL}/usr/bin/PPSSPPSDL
-    ln -sf /storage/.config/ppsspp/assets ${INSTALL}/usr/bin/assets
-    mkdir -p ${INSTALL}/usr/config/ppsspp/
-    cp -r `find . -name "assets" | xargs echo` ${INSTALL}/usr/config/ppsspp/
-    
-    cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/ppsspp/
-    
-    rm ${INSTALL}/usr/config/ppsspp/assets/gamecontrollerdb.txt
-    ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt ${INSTALL}/usr/config/ppsspp/assets/gamecontrollerdb.txt
-    
+
+		mkdir -p ${INSTALL}/usr/config/emuelec/configs/ppsspp/
+		ln -sf /storage/.config/emuelec/configs/ppsspp/assets ${INSTALL}/usr/bin/assets
+
+    cp -r `find . -name "assets" | xargs echo` ${INSTALL}/usr/config/emuelec/configs/ppsspp/
+
+    cp -rf ${PKG_DIR}/config/* ${INSTALL}/usr/config/emuelec/configs/ppsspp/
+
+    rm ${INSTALL}/usr/config/emuelec/configs/ppsspp/assets/gamecontrollerdb.txt
+    ln -sf /storage/.config/SDL-GameControllerDB/gamecontrollerdb.txt ${INSTALL}/usr/config/emuelec/configs/ppsspp/assets/gamecontrollerdb.txt
+
 # redirect some of PSP folders to /storage/roms to keep all the saves and custom files
-   mkdir -p "${INSTALL}/usr/config/ppsspp/PSP"    
-   
+   mkdir -p "${INSTALL}/usr/config/emuelec/configs/ppsspp/PSP"
+
 for dir in Cheats PPSSPP_STATE SAVEDATA TEXTURES; do
-		ln -sf "/storage/roms/savestates/PPSSPPSDL/PSP/${dir}" "${INSTALL}/usr/config/ppsspp/PSP/${dir}"
+		ln -sf "/storage/roms/savestates/PPSSPPSDL/PSP/${dir}" "${INSTALL}/usr/config/emuelec/configs/ppsspp/PSP/${dir}"
 done
 } 
