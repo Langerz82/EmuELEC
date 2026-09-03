@@ -3,8 +3,8 @@
 # Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="bluez"
-PKG_VERSION="5.87"
-PKG_SHA256="26bdcf2cebd7310c6f598850606b037ef0c515fe6608ebc54d22c50c4c32b35f"
+PKG_VERSION="5.79"
+PKG_SHA256="4164a5303a9f71c70f48c03ff60be34231b568d93a9ad5e79928d34e6aa0ea8a"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.bluez.org/"
 PKG_URL="https://www.kernel.org/pub/linux/bluetooth/${PKG_NAME}-${PKG_VERSION}.tar.xz"
@@ -74,8 +74,8 @@ post_makeinstall_target() {
   # pulseaudio checks for bluez via pkgconfig but lib is not actually needed
     sed -i 's/-lbluetooth//g' ${PKG_BUILD}/lib/bluez.pc
     cp -P ${PKG_BUILD}/lib/bluez.pc ${SYSROOT_PREFIX}/usr/lib/pkgconfig
-  
-  # copy bluezutils.py  
+
+  # copy bluezutils.py
     mkdir -p ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}
 	cp -rf ${INSTALL}/usr/lib/bluez/test/bluezutils.py ${INSTALL}/usr/lib/${PKG_PYTHON_VERSION}
 	rm -rf ${INSTALL}/usr/lib/bluez/test
