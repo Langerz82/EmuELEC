@@ -300,6 +300,9 @@ def on_device_discovered(dev: BluetoothDevice) -> bool:
     if (dev.trusted and dev.paired and not dev.connected and bt.connect(dev)):
         return True
 
+    # wiimote in 1+2 mode can't bond (pin = its own mac), connect without pairing
+    is_wiimote = (dev.name and dev.name.startswith("Nintendo RVL-"))
+
     if (
         not dev.connected  # exclude already connected devices
         and dev.rssi != 0  # exclude inactive devices (saved)
@@ -310,9 +313,6 @@ def on_device_discovered(dev: BluetoothDevice) -> bool:
                 dev.name, dev.mac, dev.icon, dev.paired
             )
         )
-
-        # wiimote in 1+2 mode can't bond (pin = its own mac), connect without pairing
-        is_wiimote = (dev.name and dev.name.startswith("Nintendo RVL-"))
 
         if bt.trust(dev) and (bt.pair(dev) or is_wiimote) and bt.connect(dev):
             print("connected device {}".format(dev.name))
@@ -330,6 +330,11 @@ def on_device_discovered(dev: BluetoothDevice) -> bool:
                 dev.name, dev.mac, dev.icon, dev.paired
             )
         )
+
+        if is_wiimote:
+            bt.trust(dev)
+            bt.pair(dev)
+            return True
 
         if bt.trust(dev):
             bt.pair(dev)
