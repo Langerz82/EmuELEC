@@ -304,7 +304,6 @@ def on_device_discovered(dev: BluetoothDevice) -> bool:
         not dev.connected  # exclude already connected devices
         and dev.rssi != 0  # exclude inactive devices (saved)
         and "input-" in dev.icon  # exclude any non-input device
-        and dev.name  # wait for name resolution, bluez wiimote pin plugin matches by name
     ):
         print(
             "found device {}, mac: {}, icon: {}, paired: {}".format(
@@ -313,7 +312,8 @@ def on_device_discovered(dev: BluetoothDevice) -> bool:
         )
 
         # wiimote in 1+2 mode can't bond (pin = its own mac), connect without pairing
-        is_wiimote = dev.name.startswith("Nintendo RVL-")
+        is_wiimote = (dev.name and dev.name.startswith("Nintendo RVL-"))
+
         if bt.trust(dev) and (bt.pair(dev) or is_wiimote) and bt.connect(dev):
             print("connected device {}".format(dev.name))
             return False
